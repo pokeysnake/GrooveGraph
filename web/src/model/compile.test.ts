@@ -76,7 +76,7 @@ describe("compile", () => {
       [["n1", "i1"], ["n2", "i2"], ["n3", "i3"], ["i1", "f1"], ["i2", "f1"], ["i3", "f1"], ["f1", OUT]],
     );
 
-    expect(compile(doc)).toEqual({
+    expect(compile(doc)).toMatchObject({
       code:
         'setcpm(120/4)\n' +
         'stack(note("c4 e4 g4").s("sawtooth"), note("c2 ~ c2 ~").s("square"), ' +
@@ -109,12 +109,12 @@ describe("compile", () => {
       [notes("n1", "c4"), inst("i1", "saw"), notes("n2", "e4"), inst("i2", "square"), filter("f1", "room", 0.3)],
       [["n1", "i1"], ["i1", OUT], ["n2", "i2"]],
     );
-    expect(compile(doc)).toEqual({ code: code('note("c4").s("sawtooth")'), issues: [] });
+    expect(compile(doc)).toMatchObject({ code: code('note("c4").s("sawtooth")'), issues: [] });
   });
 
   // a room with only the Output still has to be valid code
   it("compiles an empty doc to silence", () => {
-    expect(compile(emptyDoc())).toEqual({ code: code("silence"), issues: [] });
+    expect(compile(emptyDoc())).toMatchObject({ code: code("silence"), issues: [] });
   });
 
   it("uses the doc's bpm", () => {
@@ -141,7 +141,7 @@ describe("compile", () => {
       [notes("n1", 'c4 "e4'), inst("i1", "saw"), notes("n2", "g4"), inst("i2", "square")],
       [["n1", "i1"], ["i1", OUT], ["n2", "i2"], ["i2", OUT]],
     );
-    expect(compile(doc)).toEqual({
+    expect(compile(doc)).toMatchObject({
       code: code('note("g4").s("square")'),
       issues: [{ nodeId: "n1", message: expect.any(String) }],
     });
@@ -254,5 +254,48 @@ describe("compile: arrange", () => {
   it("an empty arrange is silent and skips inputs with nothing to play", () => {
     const doc = docOf([inst("i1", "saw"), arr("a")], [["i1", "a"]]);
     expect(compile(doc).code).toBe(code("silence"));
+  });
+});
+
+describe("compile: where each Notes text lands (for lighting the playing box)", () => {
+  // every span must cover exactly that node's text in the code
+  const check = (doc: Doc) => {
+    const { code, notesSpans } = compile(doc);
+    for (const s of notesSpans) {
+      const n = doc.nodes[s.nodeId];
+      expect(n.type).toBe("notes");
+      if (n.type === "notes") expect(code.slice(s.start, s.end)).toBe(n.data.text);
+    }
+    return notesSpans;
+  };
+
+  it("finds each text in the mockup graph", () => {
+    const doc = docOf(
+      [notes("n1", "c4 e4 g4"), notes("n2", "c2 ~ c2 ~"), notes("n3", "x ~ x x"), inst("i1", "saw"), inst("i2", "square"), inst("i3", "tr909-bd"), filter("f1", "lpf", 800)],
+      [["n1", "i1"], ["n2", "i2"], ["n3", "i3"], ["i1", "f1"], ["i2", "f1"], ["i3", "f1"], ["f1", OUT]],
+    );
+    expect(check(doc).map((s) => s.nodeId).sort()).toEqual(["n1", "n2", "n3"]);
+  });
+
+  it("a Notes node feeding two instruments is found twice", () => {
+    const doc = docOf(
+      [notes("n1", "<[c4 e4] [g4,b4]>"), inst("i1", "saw"), inst("i2", "sine")],
+      [["n1", "i1"], ["n1", "i2"], ["i1", OUT], ["i2", OUT]],
+    );
+    expect(check(doc).map((s) => s.nodeId)).toEqual(["n1", "n1"]);
+  });
+
+  it("works inside cat, shared variables and an Arrange", () => {
+    const doc = docOf(
+      [notes("a", "c4", 0), notes("b", "e4 g4", 10), inst("i1", "saw"), filter("f1", "lpf", 800), arr("ar")],
+      [["a", "i1"], ["b", "i1"], ["i1", "f1"], ["i1", "ar"], ["f1", OUT]],
+    );
+    expect(compile(doc).code).toContain("const v1");
+    expect(check(doc).map((s) => s.nodeId)).toEqual(["a", "b"]);
+  });
+
+  it("silent and invalid Notes have no span", () => {
+    const doc = docOf([notes("n1", "c4 [e4"), notes("n2", "c4"), inst("i1", "saw")], [["n1", "i1"], ["n2", "i1"]]);
+    expect(check(doc)).toEqual([]);
   });
 });

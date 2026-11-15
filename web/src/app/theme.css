@@ -146,3 +146,12 @@ html .app.is-playing .wire__flow {
   html .wire__line, html .wire__arrow, html .wire__dot { animation: none; }
   html .app.is-playing .wire__flow { animation: none; opacity: 0; }
 }
+
+/* ---------- Notes: the box that's sounding right now (audio/playing.ts) ----------
+   the selection red, brighter outline and a faint fill; quick on, a touch slower off, so fast notes still read */
+html .notes-node__step { transition: border-color 140ms ease-out, background-color 140ms ease-out, box-shadow 140ms ease-out; }
+html .notes-node__steps > .notes-node__step.notes-node__step--playing {
+  /* only the outline changes: the select color, same width as the resting outline */
+  border-color: var(--red);
+  transition-duration: 30ms;
+}

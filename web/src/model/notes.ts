@@ -7,8 +7,8 @@ export type StepView =
   | { kind: "note"; text: string } // c4
   | { kind: "rest" } // ~
   | { kind: "chord"; notes: string[] } // [c4,e4,g4]
-  | { kind: "group"; parts: { weight: number; view: StepView }[] } // [e4 g4]: several notes squeezed into one step
-  | { kind: "alt"; options: StepView[] } // <a b>: a different one each bar
+  | { kind: "group"; parts: { weight: number; view: StepView; from?: number; to?: number }[] } // [e4 g4]: several notes squeezed into one step
+  | { kind: "alt"; options: StepView[]; spans?: Span[] } // <a b>: a different one each bar (spans: where each option is in the text)
   | { kind: "other"; text: string }; // anything else (g4*2, {a b}, a|b ...): shown as its text
 
 // one chip per top-level step: "c4 [e4 g4] ~" -> "c4", "[e4 g4]", "~"
@@ -16,8 +16,12 @@ export type StepView =
 // weight: how long the step lasts compared to a plain one (c4@2 and "c4 _" are 2, c4!2 is 2 made of two c4s)
 export type NotesStep = { text: string; from: number; to: number; weight: number; view: StepView };
 
-// one step of one bar, for drawing; text is only known for top-level steps (it's the tooltip)
-export type BarStep = { weight: number; view: StepView; text?: string };
+// where something is in the Notes text (from inclusive, to exclusive)
+export type Span = { from: number; to: number };
+
+// one step of one bar, for drawing; text is only known for top-level steps (it's the tooltip).
+// from/to: where the step is in the text, so a note Strudel says is playing can light its box
+export type BarStep = { weight: number; view: StepView; text?: string; from?: number; to?: number };
 
 // the bars a Notes text plays, in order. Everything in a Notes text fits into one bar, except a whole
 // text that is one <...>: Strudel plays one option per bar, so "<[c4 e4] [g4 a4 b4]>" is two bars
@@ -26,9 +30,10 @@ export function barsOf(steps: NotesStep[]): BarStep[][] {
   const only = steps.length === 1 ? steps[0] : null;
   if (only?.view.kind === "alt") {
     // a [..] option is that bar's steps; a single note fills its bar
-    return only.view.options.map((o) => (o.kind === "group" ? o.parts : [{ weight: 1, view: o }]));
+    const spans = only.view.spans ?? [];
+    return only.view.options.map((o, i) => (o.kind === "group" ? o.parts : [{ weight: 1, view: o, ...spans[i] }]));
   }
-  return [steps.map((s) => ({ weight: s.weight, view: s.view, text: s.text }))];
+  return [steps.map((s) => ({ weight: s.weight, view: s.view, text: s.text, from: s.from, to: s.to }))];
 }
 
 export type NotesParse =
@@ -92,7 +97,7 @@ function sourceView(text: string, el: MiniElement, other: StepView): StepView {
   switch (src.arguments_.alignment) {
     // [e4 g4]
     case "fastcat":
-      return { kind: "group", parts: elementsOf(children).map((c) => ({ weight: c.options_.weight, view: viewOf(text, c) })) };
+      return { kind: "group", parts: elementsOf(children).map((c) => ({ weight: c.options_.weight, view: viewOf(text, c), ...spanOf(text, c) })) };
 
     // [c4,e4,g4]: a stack where every layer is a single plain note
     case "stack": {
@@ -112,12 +117,19 @@ function sourceView(text: string, el: MiniElement, other: StepView): StepView {
     case "polymeter_slowcat": {
       const inner = children.length === 1 ? children[0] : null;
       if (inner?.type_ !== "pattern" || inner.arguments_.alignment !== "fastcat") return other;
-      return { kind: "alt", options: elementsOf(inner.source_).map((c) => viewOf(text, c)) };
+      const opts = elementsOf(inner.source_);
+      return { kind: "alt", options: opts.map((c) => viewOf(text, c)), spans: opts.map((c) => spanOf(text, c)) };
     }
 
     default:
       return other;
   }
+}
+
+/** where an element is in the text, without its trailing space */
+function spanOf(text: string, el: MiniElement): Span {
+  const { from, to } = elementSpan(text, el);
+  return { from, to };
 }
 
 function elementsOf(nodes: MiniNode[]): MiniElement[] {

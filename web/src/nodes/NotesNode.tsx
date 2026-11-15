@@ -1,4 +1,6 @@
+import { useCallback, useSyncExternalStore } from "react";
 import { Handle, Position, type NodeProps } from "@xyflow/react";
+import { playingSnapshot, subscribePlaying } from "@/audio/playing";
 import { barsOf, parseNotes, type StepView } from "@/model/notes";
 import { BEATS_PER_BAR } from "@/model/compile";
 import { layoutBars, type Piece } from "./notesLayout";
@@ -21,6 +23,7 @@ const BAR_NUMBER_PX = 18; // the 1, 2, 3 column, only there when there's more th
 
 export default function NotesNode({ id, data }: NodeProps) {
     const ref = usePartRef(id);
+    const sounding = useSounding(id);
     const parsed = parseNotes(String(data.text ?? ""));
     const steps = parsed.ok ? parsed.steps : [];
     const bars = barsOf(steps);
@@ -53,7 +56,7 @@ export default function NotesNode({ id, data }: NodeProps) {
                             <div className="notes-node__bar">
                                 {/* minmax(0, Nfr) keeps the columns exactly proportional even when text is wider */}
                                 <div className="notes-node__steps" style={{ gridTemplateColumns: line.pieces.map((p) => `minmax(0, ${p.len}fr)`).join(" ") }}>
-                                    {line.pieces.map((p, j) => <PieceCell key={j} piece={p} />)}
+                                    {line.pieces.map((p, j) => <PieceCell key={j} piece={p} lit={isSounding(p, sounding)} />)}
                                 </div>
                                 {/* beat marks under the row, so you can see which steps land on a beat */}
                                 <div className="notes-node__ruler" aria-hidden>
@@ -69,11 +72,24 @@ export default function NotesNode({ id, data }: NodeProps) {
     );
 }
 
+/* ---------- which boxes are sounding (audio/playing.ts) ---------- */
+// offsets into this node's text that are sounding right now; only this node re-renders when they change
+function useSounding(id: string): number[] {
+    const subscribe = useCallback((f: () => void) => subscribePlaying(id, f), [id]);
+    const key = useSyncExternalStore(subscribe, () => playingSnapshot(id), () => "");
+    return key ? key.split(",").map(Number) : [];
+}
+
+// a box is lit while any sounding note was written inside it
+const isSounding = (p: Piece, offsets: number[]) =>
+    p.step.from !== undefined && p.step.to !== undefined && offsets.some((o) => o >= p.step.from! && o < p.step.to!);
+
 /* ---------- one cell (or the part of a step that falls on this row) ---------- */
-function PieceCell({ piece }: { piece: Piece }) {
+function PieceCell({ piece, lit }: { piece: Piece; lit: boolean }) {
     const { step, cutStart, cutEnd } = piece;
     const cls =
         `notes-node__step notes-node__step--${step.view.kind}` +
+        (lit ? " notes-node__step--playing" : "") +
         (cutStart ? " notes-node__step--cut-start" : "") +
         (cutEnd ? " notes-node__step--cut-end" : "");
     // a step cut across rows shows its content once, on the first row

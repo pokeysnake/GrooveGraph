@@ -25,7 +25,7 @@ import FilterNode from "@/nodes/FilterNode";
 import FxRackNode, { newEffect } from "@/nodes/FxRackNode";
 import ArrangeNode from "@/nodes/ArrangeNode";
 import { wakeServer } from "@/sync/config";
-import type { Op, Position } from "@/model/types";
+import type { Doc, Op, Position } from "@/model/types";
 import { DRAG_TYPE, newNode, PALETTE_FILTERS, PALETTE_NODES, type PaletteItem } from "@/canvas/palette";
 import { starterDoc } from "@/model/starter";
 import OutputNode from "@/nodes/OutputNode";
@@ -37,7 +37,9 @@ import { Square } from "lucide-react";
 import { BEATS_PER_BAR, compile } from "@/model/compile";
 import { issueText } from "@/canvas/issues";
 import { useRoomSocket } from "@/sync/useRoomSocket";
-import { createRoom, downloadSaveFile, readSaveFile, seedOps, type SeedChoice } from "@/sync/seed";
+import { createRoom, downloadSaveFile, foldOps, readSaveFile, seedOps, type SeedChoice } from "@/sync/seed";
+import ExamplesButton from "@/ui/ExamplesButton";
+import type { Example } from "@/model/examples";
 
 
 /* ---------- Starting graph (what's on the canvas at page load) ---------- */
@@ -116,14 +118,24 @@ function Editor({ roomId }: { roomId: string | null }) {
 
     const onShare = (choice: SeedChoice) => void openRoom(seedOps(choice, doc));
 
-    // a loaded file replaces the solo graph; in a room it opens as a NEW room (the current jam is left alone)
+    // a loaded patch replaces the solo graph; in a room it opens as a NEW room (the current jam is left alone)
+    const loadPatch = (ops: Op[], doc: Doc) => {
+        setFileError(null);
+        if (roomId) return void openRoom(ops);
+        act({ type: "load", doc, version: ops.length });
+        setUi((prev) => ({ ...emptyUi(), dims: prev.dims }));
+    };
+
     const onLoadFile = async (file: File) => {
         const r = readSaveFile(await file.text());
         if (!r.ok) return setFileError(`Load: ${r.reason}`);
-        setFileError(null);
-        if (roomId) return void openRoom(r.ops);
-        act({ type: "load", doc: r.doc, version: r.ops.length });
-        setUi((prev) => ({ ...emptyUi(), dims: prev.dims }));
+        loadPatch(r.ops, r.doc);
+    };
+
+    const onExample = (ex: Example) => {
+        const r = foldOps(ex.ops);
+        if (!r.ok) return setFileError(`Examples: ${r.reason}`); // demos.test.ts keeps this from happening
+        loadPatch(ex.ops, r.doc);
     };
 
     // reachability only depends on the doc, so drag frames skip the search
@@ -133,7 +145,7 @@ function Editor({ roomId }: { roomId: string | null }) {
     );
 
     // the Strudel code for the whole graph; recompiled only when the doc changes
-    const { code, issues } = useMemo(() => compile(doc), [doc]);
+    const { code, issues, notesSpans } = useMemo(() => compile(doc), [doc]);
     const issueLine = issues.map((i) => issueText(doc, i)).join(" · ");
     // cat sequences to frame; uses live drag positions so the frame stretches and renumbers mid-drag
     const groups = useMemo(() => catGroups(doc, ui.drag, (id) => ui.dims[id]), [doc, ui.drag, ui.dims]);
@@ -327,7 +339,7 @@ function Editor({ roomId }: { roomId: string | null }) {
     useEffect(() => {
         if (!playing) return;
         let current = true;
-        play(code).then(
+        play(code, notesSpans).then(
             () => { if (current) setError(null); },
             (e) => {
                 if (!current) return;
@@ -336,6 +348,8 @@ function Editor({ roomId }: { roomId: string | null }) {
             },
         );
         return () => { current = false; };
+        // notesSpans changes exactly when code does (same compile), so code is the only real trigger
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [code, playing]);
 
     const onPlay = () => setPlaying(true);
@@ -503,6 +517,7 @@ function Editor({ roomId }: { roomId: string | null }) {
                             title={roomId ? "Open a patch file as a new room" : "Replace this graph with a patch file"}
                             onClick={() => fileInput.current?.click()}>Load</button>
                     </div>
+                    <ExamplesButton roomId={roomId} disabled={opening} onPick={onExample} />
                     <input ref={fileInput} type="file" accept=".json,application/json" hidden
                         onChange={(e) => {
                             const file = e.target.files?.[0];

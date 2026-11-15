@@ -39,7 +39,7 @@ describe("parseNotes: valid", () => {
   });
 
   it("keeps a sub-group as one step", () => {
-    expect(parseNotes("c4 [e4 g4] ~")).toEqual({
+    expect(parseNotes("c4 [e4 g4] ~")).toMatchObject({
       ok: true,
       steps: [
         { text: "c4", from: 0, to: 2, weight: 1, view: note("c4") },
@@ -84,26 +84,26 @@ describe("parseNotes: valid", () => {
 /* ---------- step views (what the node draws) ---------- */
 describe("parseNotes: step views", () => {
   it("reads chords of any size, keeping the written order", () => {
-    expect(views("[c5,g5,e4,c4]")).toEqual([{ kind: "chord", notes: ["c5", "g5", "e4", "c4"] }]);
+    expect(views("[c5,g5,e4,c4]")).toMatchObject([{ kind: "chord", notes: ["c5", "g5", "e4", "c4"] }]);
   });
 
   it("reads a group, including a rest inside it", () => {
-    expect(views("[~ c4]")).toEqual([{ kind: "group", parts: [part({ kind: "rest" }), part(note("c4"))] }]);
+    expect(views("[~ c4]")).toMatchObject([{ kind: "group", parts: [part({ kind: "rest" }), part(note("c4"))] }]);
   });
 
   it("reads nested groups and chords inside groups", () => {
-    expect(views("[a4 [b4 c5]] [[c4,e4] g4]")).toEqual([
+    expect(views("[a4 [b4 c5]] [[c4,e4] g4]")).toMatchObject([
       { kind: "group", parts: [part(note("a4")), part({ kind: "group", parts: [part(note("b4")), part(note("c5"))] })] },
       { kind: "group", parts: [part({ kind: "chord", notes: ["c4", "e4"] }), part(note("g4"))] },
     ]);
   });
 
   it("reads alternation", () => {
-    expect(views("<c4 [e4,g4]>")).toEqual([{ kind: "alt", options: [note("c4"), { kind: "chord", notes: ["e4", "g4"] }] }]);
+    expect(views("<c4 [e4,g4]>")).toMatchObject([{ kind: "alt", options: [note("c4"), { kind: "chord", notes: ["e4", "g4"] }] }]);
   });
 
   it("shows speed modifiers as written", () => {
-    expect(views("g4*2 a4/2")).toEqual([
+    expect(views("g4*2 a4/2")).toMatchObject([
       { kind: "other", text: "g4*2" },
       { kind: "other", text: "a4/2" },
     ]);
@@ -129,15 +129,15 @@ describe("parseNotes: step views", () => {
   });
 
   it("keeps weights inside groups", () => {
-    expect(views("[c4@3 e4]")).toEqual([{ kind: "group", parts: [part(note("c4"), 3), part(note("e4"))] }]);
+    expect(views("[c4@3 e4]")).toMatchObject([{ kind: "group", parts: [part(note("c4"), 3), part(note("e4"))] }]);
   });
 
   it("shows a chord that isn't plain notes as written", () => {
-    expect(views("[c4 e4, g4]")).toEqual([{ kind: "other", text: "[c4 e4, g4]" }]);
+    expect(views("[c4 e4, g4]")).toMatchObject([{ kind: "other", text: "[c4 e4, g4]" }]);
   });
 
   it("treats - as a rest too", () => {
-    expect(views("c4 -")).toEqual([note("c4"), { kind: "rest" }]);
+    expect(views("c4 -")).toMatchObject([note("c4"), { kind: "rest" }]);
   });
 });
 
@@ -165,7 +165,7 @@ describe("barsOf", () => {
   });
 
   it("keeps a <...> that is only part of the text as one step", () => {
-    expect(bars("c4 <e4 g4>")).toEqual([[[1, note("c4")], [1, { kind: "alt", options: [note("e4"), note("g4")] }]]]);
+    expect(bars("c4 <e4 g4>")).toMatchObject([[[1, note("c4")], [1, { kind: "alt", options: [note("e4"), note("g4")] }]]]);
   });
 
   it("has no bars for blank text", () => {
@@ -189,5 +189,26 @@ describe("parseNotes: errors", () => {
 
   it("returns a readable message", () => {
     expect(mustFail("c4 ]").message).toBe('Unexpected "]"');
+  });
+});
+
+/* ---------- where each box is in the text (for lighting the one that's playing) ---------- */
+describe("barsOf: text positions", () => {
+  const bars = (text: string) => {
+    const r = parseNotes(text);
+    if (!r.ok) throw new Error(r.message);
+    return barsOf(r.steps).map((bar) => bar.map((s) => text.slice(s.from, s.to)));
+  };
+
+  it("a plain row: each box is its own step", () => {
+    expect(bars("c4 [e4 g4] ~")).toEqual([["c4", "[e4 g4]", "~"]]);
+  });
+
+  it("<[bar 1] [bar 2]>: each inner box points at its own note", () => {
+    expect(bars("<[c4@3 ~] [e4 [c4,e4,g4]]>")).toEqual([["c4@3", "~"], ["e4", "[c4,e4,g4]"]]);
+  });
+
+  it("<a b>: a single-note option fills its bar and points at itself", () => {
+    expect(bars("<c4 [e4 g4]>")).toEqual([["c4"], ["e4", "g4"]]);
   });
 });

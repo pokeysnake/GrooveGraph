@@ -10,7 +10,10 @@ import { FILTERS, Q, type FilterKind } from "./filters";
 export const BEATS_PER_BAR = 4;
 
 export type CompileIssue = { nodeId: string; message: string };
-export type CompileResult = { code: string; issues: CompileIssue[] };
+/** where a Notes node's text landed in the code: code[start, end) is exactly that text (inside its quotes).
+ *  A Notes node feeding two instruments lands twice. Used to light up the box that's playing. */
+export type NotesSpan = { nodeId: string; start: number; end: number };
+export type CompileResult = { code: string; issues: CompileIssue[]; notesSpans: NotesSpan[] };
 
 type InstrumentNode = Extract<GraphNode, {type:"instrument"}>;
 type FilterNode = Extract<GraphNode, { type: "filter" }>
@@ -64,14 +67,22 @@ export function compile(doc:Doc): CompileResult {
     //one part played as is, 2+ played per cycle
     const catOf = (parts: string[]) => (parts.length === 1 ? parts[0] : `cat(${parts.join(", ")})`);
 
-    //an instrument notes texts top to bottom, bad ones are reported and skipped, blanks skipped too
+    // a Notes text goes into the code as a placeholder first and its string literal replaces it at the very end,
+    // once its final offset is known (the code is built inside-out, so offsets aren't known while building)
+    const notesLits: { nodeId: string; lit: string }[] = [];
+    const notesLit = (nodeId: string, text: string) => {
+        notesLits.push({ nodeId, lit: str(text) });
+        return `\u0000${notesLits.length - 1}\u0000`;
+    };
+
+    //an instrument notes texts top to bottom (as placeholders), bad ones are reported and skipped, blanks skipped too
     function notesTexts(id:string) :string[] {
         const texts: string[] = [];
         for(const n of inputsOf(id)) {
             if(n.type !== "notes") continue;
             const parsed = parseNotes(n.data.text);
             if(!parsed.ok) issues.set(n.id, parsed.message); // the UI adds the node name (canvas/issues.ts)
-            else if (parsed.steps.length > 0) texts.push(n.data.text);
+            else if (parsed.steps.length > 0) texts.push(notesLit(n.id, n.data.text));
         }
         return texts;
     }
@@ -88,8 +99,8 @@ export function compile(doc:Doc): CompileResult {
 
         const { s, bank, n} = sound.strudel;
         const extras = (bank ? `.bank(${str(bank)})` : "") + (n !== undefined ? `.n(${n})` : "");
-        if (sound.kind === "pitched") return `${catOf(texts.map((t) => `note(${str(t)})`))}.s(${str(s)})${extras}`;
-        return `s(${str(s)})${extras}.struct(${catOf(texts.map(str))})`;
+        if (sound.kind === "pitched") return `${catOf(texts.map((t) => `note(${t})`))}.s(${str(s)})${extras}`;
+        return `s(${str(s)})${extras}.struct(${catOf(texts)})`;
     }
 
     /** Filters and Output */
@@ -185,8 +196,19 @@ export function compile(doc:Doc): CompileResult {
     const arranges = nodes.filter((n) => n.type === "arrange" && live.has(n.id)).sort(byPosition);
     const parts = [...inputExprs(OUTPUT_ID), ...arranges.map(exprOf).filter((e): e is string => e !== null)];
     const body = parts.length > 0 ? stackOf(parts) : "silence";
-    const code = [`setcpm(${doc.settings.bpm}/${BEATS_PER_BAR})`, ...vars, body].join("\n");
-    return { code, issues: [...issues].map(([nodeId, message]) => ({ nodeId, message })) };
+    const withHoles = [`setcpm(${doc.settings.bpm}/${BEATS_PER_BAR})`, ...vars, body].join("\n");
+
+    // swap each placeholder for its string literal, noting where the text inside the quotes ends up
+    const notesSpans: NotesSpan[] = [];
+    let grown = 0; // how much longer the code has got so far
+    const code = withHoles.replace(/\u0000(\d+)\u0000/g, (hole: string, i: string, at: number) => {
+        const { nodeId, lit } = notesLits[Number(i)];
+        const start = at + grown + 1; // +1 skips the opening quote
+        notesSpans.push({ nodeId, start, end: start + lit.length - 2 });
+        grown += lit.length - hole.length;
+        return lit;
+    });
+    return { code, issues: [...issues].map(([nodeId, message]) => ({ nodeId, message })), notesSpans };
 
 }
 
