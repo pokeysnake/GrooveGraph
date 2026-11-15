@@ -19,8 +19,8 @@
       "opId": "song-form-1",
       "positions": {
         "output": {
-          "x": 1120,
-          "y": 59
+          "x": 1210,
+          "y": 101
         }
       }
     },
@@ -47,7 +47,7 @@
         "id": "kick",
         "type": "instrument",
         "position": {
-          "x": 420,
+          "x": 500,
           "y": 0
         },
         "data": {
@@ -65,7 +65,7 @@
         "type": "notes",
         "position": {
           "x": 40,
-          "y": 126
+          "y": 202
         },
         "data": {
           "name": "Hats",
@@ -80,8 +80,8 @@
         "id": "hat",
         "type": "instrument",
         "position": {
-          "x": 420,
-          "y": 126
+          "x": 500,
+          "y": 202
         },
         "data": {
           "sound": "tr909-hh",
@@ -98,7 +98,7 @@
         "type": "notes",
         "position": {
           "x": 40,
-          "y": 266
+          "y": 404
         },
         "data": {
           "name": "Verse",
@@ -113,8 +113,8 @@
         "id": "verse",
         "type": "instrument",
         "position": {
-          "x": 420,
-          "y": 266
+          "x": 500,
+          "y": 404
         },
         "data": {
           "sound": "piano",
@@ -131,7 +131,7 @@
         "type": "notes",
         "position": {
           "x": 40,
-          "y": 400
+          "y": 606
         },
         "data": {
           "name": "Chorus",
@@ -146,8 +146,8 @@
         "id": "chorus",
         "type": "instrument",
         "position": {
-          "x": 420,
-          "y": 400
+          "x": 500,
+          "y": 606
         },
         "data": {
           "sound": "triangle",
@@ -163,8 +163,8 @@
         "id": "chorus-fx",
         "type": "fx",
         "position": {
-          "x": 740,
-          "y": 400
+          "x": 840,
+          "y": 606
         },
         "data": {
           "effects": [
@@ -185,8 +185,8 @@
         "id": "song",
         "type": "arrange",
         "position": {
-          "x": 1120,
-          "y": 326
+          "x": 1210,
+          "y": 486
         },
         "data": {
           "bars": {

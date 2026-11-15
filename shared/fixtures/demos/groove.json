@@ -19,8 +19,8 @@
       "opId": "groove-1",
       "positions": {
         "output": {
-          "x": 1120,
-          "y": 252
+          "x": 1210,
+          "y": 442
         }
       }
     },
@@ -47,7 +47,7 @@
         "id": "kick",
         "type": "instrument",
         "position": {
-          "x": 420,
+          "x": 500,
           "y": 0
         },
         "data": {
@@ -65,7 +65,7 @@
         "type": "notes",
         "position": {
           "x": 40,
-          "y": 126
+          "y": 202
         },
         "data": {
           "name": "Snare",
@@ -80,8 +80,8 @@
         "id": "snare",
         "type": "instrument",
         "position": {
-          "x": 420,
-          "y": 126
+          "x": 500,
+          "y": 202
         },
         "data": {
           "sound": "tr909-cp",
@@ -98,7 +98,7 @@
         "type": "notes",
         "position": {
           "x": 40,
-          "y": 252
+          "y": 404
         },
         "data": {
           "name": "Hats",
@@ -113,8 +113,8 @@
         "id": "hat",
         "type": "instrument",
         "position": {
-          "x": 420,
-          "y": 252
+          "x": 500,
+          "y": 404
         },
         "data": {
           "sound": "tr909-hh",
@@ -131,7 +131,7 @@
         "type": "notes",
         "position": {
           "x": 40,
-          "y": 377
+          "y": 606
         },
         "data": {
           "name": "Bass",
@@ -146,8 +146,8 @@
         "id": "bass",
         "type": "instrument",
         "position": {
-          "x": 420,
-          "y": 377
+          "x": 500,
+          "y": 606
         },
         "data": {
           "sound": "saw",
@@ -164,7 +164,7 @@
         "type": "notes",
         "position": {
           "x": 40,
-          "y": 503
+          "y": 808
         },
         "data": {
           "name": "Lead",
@@ -179,8 +179,8 @@
         "id": "lead",
         "type": "instrument",
         "position": {
-          "x": 420,
-          "y": 503
+          "x": 500,
+          "y": 808
         },
         "data": {
           "sound": "square",
@@ -196,8 +196,8 @@
         "id": "bass-f",
         "type": "filter",
         "position": {
-          "x": 740,
-          "y": 377
+          "x": 840,
+          "y": 606
         },
         "data": {
           "kind": "lpf",
@@ -213,8 +213,8 @@
         "id": "lead-fx",
         "type": "fx",
         "position": {
-          "x": 740,
-          "y": 503
+          "x": 840,
+          "y": 808
         },
         "data": {
           "effects": [
@@ -248,8 +248,8 @@
         "id": "hat-g",
         "type": "filter",
         "position": {
-          "x": 740,
-          "y": 252
+          "x": 840,
+          "y": 404
         },
         "data": {
           "kind": "gain",

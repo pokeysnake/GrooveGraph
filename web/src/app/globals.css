@@ -475,3 +475,4 @@ button, input { font: inherit; } /* form controls don't inherit fonts by default
 .side .patch-actions { display: flex; gap: 6px; }
 .side .patch-actions .btn { flex: 1; justify-content: center; }
 .side .patch-note { margin: 6px 0 0; font-size: 11px; line-height: 1.4; color: var(--muted); }
+.side .examples-btn { width: 100%; justify-content: center; margin-top: 6px; }

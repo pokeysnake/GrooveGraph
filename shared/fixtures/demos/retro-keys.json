@@ -1,0 +1,278 @@
+{
+  "app": "music-canvas",
+  "format": 1,
+  "ops": [
+    {
+      "type": "setSetting",
+      "opId": "rk-0",
+      "patch": {
+        "bpm": 140,
+        "eq": {
+          "low": 0,
+          "mid": 0,
+          "high": 0
+        }
+      }
+    },
+    {
+      "type": "moveNodes",
+      "opId": "rk-1",
+      "positions": {
+        "output": {
+          "x": 1228,
+          "y": 1084
+        }
+      }
+    },
+    {
+      "type": "addNode",
+      "opId": "rk-2",
+      "node": {
+        "id": "chords-n",
+        "type": "notes",
+        "position": {
+          "x": 40,
+          "y": 0
+        },
+        "data": {
+          "name": "Chords",
+          "text": "<[[g3,g4,bb4,db5,f5]@4 ~@4 [f3,f4,ab4,c5,eb5,g5]@4 ~ [a2,a4,c5,eb5,g5]@3] [[bb3,bb4,db5,f5,ab5]@3 ~@3 [db5,e5,ab5] ~ [ab3,ab4,c5,eb5,g5]@4 [c3,c5,eb5,g5]@2 [ab3,ab4,b4,d5,g5] ~] [[g3,g4,bb4,db5,f5]@4 ~@4 [f3,f4,ab4,c5,eb5,g5]@4 ~ [a2,a4,c5,eb5,g5]@3] [[bb3,bb4,db5,f5,ab5]@3 ~@3 [db5,e5,ab5] ~ [ab3,ab4,c5,eb5,g5]@4 [c3,c5,eb5,g5]@2 [ab3,ab4,b4,eb5,gb5] ~]>"
+        }
+      }
+    },
+    {
+      "type": "addNode",
+      "opId": "rk-3",
+      "node": {
+        "id": "chords",
+        "type": "instrument",
+        "position": {
+          "x": 518,
+          "y": 0
+        },
+        "data": {
+          "sound": "square",
+          "muted": false,
+          "solo": false
+        }
+      }
+    },
+    {
+      "type": "addNode",
+      "opId": "rk-4",
+      "node": {
+        "id": "lead-n",
+        "type": "notes",
+        "position": {
+          "x": 40,
+          "y": 731
+        },
+        "data": {
+          "name": "Top line",
+          "text": "<[ab5@3 bb5 ~ ab5 ~@10] ~ [ab5@3 bb5 ~ ab5 ~ ~ c6@2 eb6 ~ bb5 ~ c6 ~] ~>"
+        }
+      }
+    },
+    {
+      "type": "addNode",
+      "opId": "rk-5",
+      "node": {
+        "id": "lead",
+        "type": "instrument",
+        "position": {
+          "x": 518,
+          "y": 731
+        },
+        "data": {
+          "sound": "square",
+          "muted": false,
+          "solo": false
+        }
+      }
+    },
+    {
+      "type": "addNode",
+      "opId": "rk-6",
+      "node": {
+        "id": "fill-n",
+        "type": "notes",
+        "position": {
+          "x": 40,
+          "y": 1316
+        },
+        "data": {
+          "name": "Low fills",
+          "text": "<[~@5 c3 c4 ~@5 a3 ~@3] [~@3 eb3 ~ eb4 ~@10] [~@5 c3 c4 ~@5 a3 ~@3] [~@3 bb2 ~ a4 ~@10]>"
+        }
+      }
+    },
+    {
+      "type": "addNode",
+      "opId": "rk-7",
+      "node": {
+        "id": "fill",
+        "type": "instrument",
+        "position": {
+          "x": 518,
+          "y": 1316
+        },
+        "data": {
+          "sound": "triangle",
+          "muted": false,
+          "solo": false
+        }
+      }
+    },
+    {
+      "type": "addNode",
+      "opId": "rk-8",
+      "node": {
+        "id": "keys-fx",
+        "type": "fx",
+        "position": {
+          "x": 858,
+          "y": 0
+        },
+        "data": {
+          "effects": [
+            {
+              "id": "k0",
+              "kind": "lpf",
+              "value": 3200,
+              "q": 0.7,
+              "on": true
+            },
+            {
+              "id": "k1",
+              "kind": "gain",
+              "value": 0.5,
+              "on": true
+            },
+            {
+              "id": "k2",
+              "kind": "delay",
+              "value": 0.2,
+              "on": true
+            },
+            {
+              "id": "k3",
+              "kind": "room",
+              "value": 0.25,
+              "on": true
+            }
+          ]
+        }
+      }
+    },
+    {
+      "type": "connect",
+      "opId": "rk-9",
+      "source": "chords-n",
+      "target": "chords"
+    },
+    {
+      "type": "connect",
+      "opId": "rk-10",
+      "source": "lead-n",
+      "target": "lead"
+    },
+    {
+      "type": "connect",
+      "opId": "rk-11",
+      "source": "fill-n",
+      "target": "fill"
+    },
+    {
+      "type": "connect",
+      "opId": "rk-12",
+      "source": "chords",
+      "target": "keys-fx"
+    },
+    {
+      "type": "connect",
+      "opId": "rk-13",
+      "source": "lead",
+      "target": "keys-fx"
+    },
+    {
+      "type": "connect",
+      "opId": "rk-14",
+      "source": "keys-fx",
+      "target": "output"
+    },
+    {
+      "type": "connect",
+      "opId": "rk-15",
+      "source": "fill",
+      "target": "output"
+    },
+    {
+      "type": "addNode",
+      "node": {
+        "id": "bass-n",
+        "type": "notes",
+        "position": {
+          "x": 40,
+          "y": 2047
+        },
+        "data": {
+          "name": "Synth bass",
+          "text": "<[g2@4 ~ c2 c3 ~ f2@4 a2@4] [bb2@3 eb2 ~ eb2 eb3 ~ ab2@4 c3@2 ab2 ~]>"
+        }
+      },
+      "opId": "rk-16"
+    },
+    {
+      "type": "addNode",
+      "node": {
+        "id": "bass",
+        "type": "instrument",
+        "position": {
+          "x": 518,
+          "y": 2047
+        },
+        "data": {
+          "sound": "saw",
+          "muted": false,
+          "solo": false
+        }
+      },
+      "opId": "rk-17"
+    },
+    {
+      "type": "addNode",
+      "node": {
+        "id": "bass-f",
+        "type": "filter",
+        "position": {
+          "x": 858,
+          "y": 2047
+        },
+        "data": {
+          "kind": "lpf",
+          "value": 700,
+          "q": 4
+        }
+      },
+      "opId": "rk-18"
+    },
+    {
+      "type": "connect",
+      "source": "bass-n",
+      "target": "bass",
+      "opId": "rk-19"
+    },
+    {
+      "type": "connect",
+      "source": "bass",
+      "target": "bass-f",
+      "opId": "rk-20"
+    },
+    {
+      "type": "connect",
+      "source": "bass-f",
+      "target": "output",
+      "opId": "rk-21"
+    }
+  ]
+}
