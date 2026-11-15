@@ -35,3 +35,7 @@ declare module "@strudel/mini" {
     found: string | null;
   }
 }
+declare module "@strudel/soundfonts" {
+  /** registers every General MIDI instrument (gm_piano, gm_epiano1...) as a playable sound */
+  export function registerSoundfonts(): void;
+}

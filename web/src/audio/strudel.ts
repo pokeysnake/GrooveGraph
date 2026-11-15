@@ -49,6 +49,9 @@ export async function play(code: string, notesSpans: NotesSpan[] = []): Promise<
         prebake: () => Promise.all([
           s.samples(`${DOUGH}/piano.json`),
           s.samples(`${DOUGH}/tidal-drum-machines.json`),
+          s.samples("github:tidalcycles/dirt-samples"),
+          // General MIDI instruments (gm_epiano1, gm_music_box...); each font downloads the first time it plays
+          import("@strudel/soundfonts").then((sf) => sf.registerSoundfonts()),
         ]),
       }),
     )

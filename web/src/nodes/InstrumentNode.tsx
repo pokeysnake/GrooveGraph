@@ -7,7 +7,8 @@ import { usePartRef } from "@/canvas/partRefs";
 import "./instrument-node.css";
 
 const CATEGORY_LABEL: Record<(typeof SOUNDS)[number]["category"], string> = {
-  "synths": "Synths", "samples": "Samples", "drum-machines": "Drum machines", "wavetables": "Wavetables",
+  "synths": "Synths", "samples": "Samples", "soundfonts": "Instruments (GM)",
+  "drum-machines": "Drum machines", "dirt": "Dirt samples", "wavetables": "Wavetables",
 };
 // built once from the SOUNDS table, so a new sound shows up in the menu automatically
 const SOUND_OPTIONS: SelectOption[] = SOUNDS.map((s) => ({ value: s.id, label: s.label, group: CATEGORY_LABEL[s.category] }));
