@@ -127,6 +127,13 @@ def test_update_node_data_changes_one_field_and_keeps_the_others():
     assert data == {"kind": "lpf", "value": 900, "q": 0.7}
 
 
+def test_new_effect_kinds_are_accepted_in_an_fx_rack():
+    rows = [{"id": k, "kind": k, "value": 1, "on": True} for k in ("crush", "coarse", "distort", "shape", "phaser", "pan")]
+    fx = {"id": "x", "type": "fx", "position": {"x": 0, "y": 0}, "data": {"effects": rows}}
+    doc = must_apply(chain_doc(), {"type": "addNode", "opId": op_id(), "node": fx})
+    assert len(doc["nodes"]["x"]["data"]["effects"]) == 6
+
+
 def test_connect_adds_an_edge_with_a_deterministic_id():
     doc = apply_all(
         empty_doc(), [add(notes("n")), add(instrument("i")), connect("n", "i")]
