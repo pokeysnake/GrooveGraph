@@ -106,19 +106,20 @@ class Room:
 rooms: dict[str, Room] = {}
 
 
-def get_room(room_id: str) -> Room:
-    room = rooms.get(room_id)
-    if room is None:
-        room = rooms[room_id] = Room()
-    return room
+def get_room(room_id: str) -> Room | None:
+    """the room, or None if there is no such room (never invented: a restart must be visible to clients)"""
+    return rooms.get(room_id)
 
 
 # a big patch is a few hundred ops --> hard caps to stop someone from sending a giant list
 MAX_SEED_OPS = 2000
 
 
-def create_room(ops: list[dict[str, Any]]) -> str | Rejected:
-    """a new room seeded with these ops instead of the starter --> every op must apply, or no room is made"""
+def create_room(ops: list[dict[str, Any]], room_id: str | None = None) -> str | Rejected:
+    """a new room seeded with these ops instead of the starter --> every op must apply, or no room is made.
+    room_id: rebuild a room under its old id after a server restart; refused if it already exists"""
+    if room_id is not None and room_id in rooms:
+        return Rejected("room already exists")
     if len(ops) > MAX_SEED_OPS:
         return Rejected(f"too many ops (max {MAX_SEED_OPS})")
     doc = empty_doc()
@@ -127,6 +128,6 @@ def create_room(ops: list[dict[str, Any]]) -> str | Rejected:
         if isinstance(result, Rejected):
             return result
         doc = result.doc
-    room_id = uuid4().hex
+    room_id = room_id or uuid4().hex
     rooms[room_id] = Room(ops, doc)
     return room_id

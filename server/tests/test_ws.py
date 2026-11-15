@@ -5,12 +5,11 @@
 import json
 from contextlib import contextmanager
 from pathlib import Path
-from uuid import uuid4
 
 from fastapi.testclient import TestClient
 
 from app.main import app
-from app.rooms import replay
+from app.rooms import create_room, replay
 
 client = TestClient(app)
 
@@ -23,8 +22,10 @@ STARTER = json.loads(
 
 
 def new_room() -> str:
-    # rooms live in memory for the whole test run, so each test uses its own
-    return uuid4().hex
+    # rooms live in memory for the whole test run, so each test makes its own (seeded with the starter, like a join used to)
+    room = create_room(list(STARTER))
+    assert isinstance(room, str)
+    return room
 
 
 def op_msg(bpm: int, seq: int) -> dict:

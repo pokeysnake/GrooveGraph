@@ -39,9 +39,11 @@ def health() -> dict[str, str]:
 @app.post("/api/rooms", status_code=201)
 def new_room(body: SeedRequest) -> dict[str, str]:
     """make a room seeded with the sender's ops; the client then opens /room/{roomId}"""
-    result = create_room(body.ops)
+    result = create_room(body.ops, body.roomId)
     if isinstance(result, Rejected):
-        raise HTTPException(status_code=422, detail=result.reason)
+        # 409: someone else already rebuilt this room after a restart, so the caller just rejoins it
+        code = 409 if result.reason == "room already exists" else 422
+        raise HTTPException(status_code=code, detail=result.reason)
     return {"roomId": result}
 
 
@@ -49,6 +51,11 @@ def new_room(body: SeedRequest) -> dict[str, str]:
 async def room_socket(ws: WebSocket, room_id: str) -> None:
     await ws.accept()
     room = get_room(room_id)
+    if room is None:
+        # accept first, then close: closing before accept reaches the browser as a bare 1006 with no code.
+        # 4000-4999 are free for apps; 4404 = "404 for a socket", the client re-seeds the room from its own copy
+        await ws.close(code=4404, reason="room not found")
+        return
     client_id = uuid4().hex
     # comes before snapshot because either op is already in snapshot or the client is registered and received it in broadcast
     room.clients[ws] = client_id

@@ -83,3 +83,5 @@ class SeedRequest(BaseModel):
     """http POST /api/rooms body --> the ops a new room starts from [] = blank, the starter ops = the demo"""
 
     ops: list[Op]
+    # only when rebuilding a lost room under its old link; 32 hex chars, the same shape uuid4().hex makes
+    roomId: Annotated[str, Field(pattern=r"^[0-9a-f]{32}$")] | None = None
