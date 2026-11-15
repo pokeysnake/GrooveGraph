@@ -1,0 +1,254 @@
+{
+  "app": "music-canvas",
+  "format": 1,
+  "ops": [
+    {
+      "type": "setSetting",
+      "opId": "song-form-0",
+      "patch": {
+        "bpm": 100,
+        "eq": {
+          "low": 0,
+          "mid": 0,
+          "high": 0
+        }
+      }
+    },
+    {
+      "type": "moveNodes",
+      "opId": "song-form-1",
+      "positions": {
+        "output": {
+          "x": 1120,
+          "y": 59
+        }
+      }
+    },
+    {
+      "type": "addNode",
+      "opId": "song-form-2",
+      "node": {
+        "id": "kick-n",
+        "type": "notes",
+        "position": {
+          "x": 40,
+          "y": 0
+        },
+        "data": {
+          "name": "Kick",
+          "text": "x ~ x ~"
+        }
+      }
+    },
+    {
+      "type": "addNode",
+      "opId": "song-form-3",
+      "node": {
+        "id": "kick",
+        "type": "instrument",
+        "position": {
+          "x": 420,
+          "y": 0
+        },
+        "data": {
+          "sound": "tr909-bd",
+          "muted": false,
+          "solo": false
+        }
+      }
+    },
+    {
+      "type": "addNode",
+      "opId": "song-form-4",
+      "node": {
+        "id": "hat-n",
+        "type": "notes",
+        "position": {
+          "x": 40,
+          "y": 126
+        },
+        "data": {
+          "name": "Hats",
+          "text": "~ x ~ x"
+        }
+      }
+    },
+    {
+      "type": "addNode",
+      "opId": "song-form-5",
+      "node": {
+        "id": "hat",
+        "type": "instrument",
+        "position": {
+          "x": 420,
+          "y": 126
+        },
+        "data": {
+          "sound": "tr909-hh",
+          "muted": false,
+          "solo": false
+        }
+      }
+    },
+    {
+      "type": "addNode",
+      "opId": "song-form-6",
+      "node": {
+        "id": "verse-n",
+        "type": "notes",
+        "position": {
+          "x": 40,
+          "y": 266
+        },
+        "data": {
+          "name": "Verse",
+          "text": "c4 ~ e4 g4 ~ e4 ~ ~"
+        }
+      }
+    },
+    {
+      "type": "addNode",
+      "opId": "song-form-7",
+      "node": {
+        "id": "verse",
+        "type": "instrument",
+        "position": {
+          "x": 420,
+          "y": 266
+        },
+        "data": {
+          "sound": "piano",
+          "muted": false,
+          "solo": false
+        }
+      }
+    },
+    {
+      "type": "addNode",
+      "opId": "song-form-8",
+      "node": {
+        "id": "chorus-n",
+        "type": "notes",
+        "position": {
+          "x": 40,
+          "y": 400
+        },
+        "data": {
+          "name": "Chorus",
+          "text": "[c4,e4,g4] ~ [a3,c4,f4] ~ [g3,b3,d4] ~ ~ ~"
+        }
+      }
+    },
+    {
+      "type": "addNode",
+      "opId": "song-form-9",
+      "node": {
+        "id": "chorus",
+        "type": "instrument",
+        "position": {
+          "x": 420,
+          "y": 400
+        },
+        "data": {
+          "sound": "triangle",
+          "muted": false,
+          "solo": false
+        }
+      }
+    },
+    {
+      "type": "addNode",
+      "opId": "song-form-10",
+      "node": {
+        "id": "chorus-fx",
+        "type": "fx",
+        "position": {
+          "x": 740,
+          "y": 400
+        },
+        "data": {
+          "effects": [
+            {
+              "id": "chorus-fx-0",
+              "kind": "room",
+              "value": 0.5,
+              "on": true
+            }
+          ]
+        }
+      }
+    },
+    {
+      "type": "addNode",
+      "opId": "song-form-11",
+      "node": {
+        "id": "song",
+        "type": "arrange",
+        "position": {
+          "x": 1120,
+          "y": 326
+        },
+        "data": {
+          "bars": {
+            "verse": 8,
+            "chorus-fx": 4
+          }
+        }
+      }
+    },
+    {
+      "type": "connect",
+      "opId": "song-form-12",
+      "source": "kick-n",
+      "target": "kick"
+    },
+    {
+      "type": "connect",
+      "opId": "song-form-13",
+      "source": "hat-n",
+      "target": "hat"
+    },
+    {
+      "type": "connect",
+      "opId": "song-form-14",
+      "source": "verse-n",
+      "target": "verse"
+    },
+    {
+      "type": "connect",
+      "opId": "song-form-15",
+      "source": "chorus-n",
+      "target": "chorus"
+    },
+    {
+      "type": "connect",
+      "opId": "song-form-16",
+      "source": "chorus",
+      "target": "chorus-fx"
+    },
+    {
+      "type": "connect",
+      "opId": "song-form-17",
+      "source": "kick",
+      "target": "output"
+    },
+    {
+      "type": "connect",
+      "opId": "song-form-18",
+      "source": "hat",
+      "target": "output"
+    },
+    {
+      "type": "connect",
+      "opId": "song-form-19",
+      "source": "verse",
+      "target": "song"
+    },
+    {
+      "type": "connect",
+      "opId": "song-form-20",
+      "source": "chorus-fx",
+      "target": "song"
+    }
+  ]
+}

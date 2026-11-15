@@ -4,7 +4,7 @@ import { emptyDoc, OUTPUT_ID } from "@/model/doc";
 import { starterDoc, starterOps } from "@/model/starter";
 import type { Doc, Op } from "@/model/types";
 import { initialSync, syncReducer } from "./optimistic";
-import { createRoom, docToOps, foldOps, readSaveFile, SAVE_FORMAT, saveFile, seedOps } from "./seed";
+import { createRoom, docToOps, foldOps, readSaveFile, rebuildRoom, SAVE_FORMAT, saveFile, seedOps } from "./seed";
 
 /* Seeds and patch files: there's no database, so the graph has to survive being turned into ops and back.
    starter: n1 (notes) -> n2 (instrument) -> n3 (lpf) -> output */
@@ -144,5 +144,28 @@ describe("syncReducer: load (solo)", () => {
     expect(s.pending).toEqual([]);
     expect(s.error).toBeNull();
     expect(s.version).toBe(12);
+  });
+});
+
+describe("rebuildRoom", () => {
+  const reply = (status: number, body: unknown) =>
+    vi.fn<(url: string, init?: RequestInit) => Promise<Response>>(async () => new Response(JSON.stringify(body), { status }));
+
+  it("posts our confirmed doc under the old room id", async () => {
+    const fetchFn = reply(201, { roomId: "a".repeat(32) });
+    await rebuildRoom("a".repeat(32), starterDoc(), fetchFn as unknown as typeof fetch);
+    const body = JSON.parse(String(fetchFn.mock.calls[0][1]?.body));
+    expect(body.roomId).toBe("a".repeat(32));
+    expect(foldOps(body.ops)).toEqual({ ok: true, doc: starterDoc() });
+  });
+
+  it("someone else rebuilding it first (409) is fine", async () => {
+    const fetchFn = reply(409, { detail: "room already exists" });
+    await expect(rebuildRoom("a".repeat(32), starterDoc(), fetchFn as unknown as typeof fetch)).resolves.toBeUndefined();
+  });
+
+  it("any other failure is passed on so the socket backs off", async () => {
+    const fetchFn = reply(422, { detail: "node does not exist" });
+    await expect(rebuildRoom("a".repeat(32), starterDoc(), fetchFn as unknown as typeof fetch)).rejects.toThrow("node does not exist");
   });
 });

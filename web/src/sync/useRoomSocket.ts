@@ -1,10 +1,11 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState, type Dispatch } from "react";
-import type { Op } from "@/model/types";
+import type { Doc, Op } from "@/model/types";
 import type { SyncAction } from "./optimistic";
 import type { Claims } from "./protocol";
 import { WS_URL } from "./config";
+import { rebuildRoom } from "./seed";
 import { connectRoom, type RoomSocket, type Status } from "./roomSocket";
 
 
@@ -17,7 +18,14 @@ function devLagMs(): number {
 
 /** Connects to /ws/{roomId} while roomId is set (null = solo, no socket) and turns server messages
  *  into syncReducer actions. send() ships a local op and returns its clientSeq (null = not sent). */
-export function useRoomSocket(roomId: string | null, act: Dispatch<SyncAction>) {
+export function useRoomSocket(roomId: string | null, act: Dispatch<SyncAction>, confirmed: Doc) {
+  // the last doc the server confirmed, read when the room turns out to be lost (a ref so it isn't a dependency:
+  // a new doc must not tear down and reopen the socket)
+  const confirmedRef = useRef(confirmed);
+  useEffect(() => {
+    confirmedRef.current = confirmed;
+  }, [confirmed]);
+
   const [status, setStatus] = useState<Status>("closed");
   // who is dragging what (mine included); live only, never part of the doc
   const [claims, setClaims] = useState<Claims>({});
@@ -34,6 +42,7 @@ export function useRoomSocket(roomId: string | null, act: Dispatch<SyncAction>) 
         if (st === "closed") setClaims({}); // the server frees everything on disconnect; a rejoin's snapshot has the new map
       },
       onClaims: setClaims,
+      onLost: () => rebuildRoom(roomId, confirmedRef.current),
     }, undefined, devLagMs());
     room.current = socket;
     return () => {

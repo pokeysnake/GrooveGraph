@@ -24,6 +24,7 @@ import InstrumentNode from "@/nodes/InstrumentNode";
 import FilterNode from "@/nodes/FilterNode";
 import FxRackNode, { newEffect } from "@/nodes/FxRackNode";
 import ArrangeNode from "@/nodes/ArrangeNode";
+import { wakeServer } from "@/sync/config";
 import type { Op, Position } from "@/model/types";
 import { DRAG_TYPE, newNode, PALETTE_FILTERS, PALETTE_NODES, type PaletteItem } from "@/canvas/palette";
 import { starterDoc } from "@/model/starter";
@@ -78,13 +79,13 @@ const BPM_MAX = 240;
    ===================================================================== */
 function Editor({ roomId }: { roomId: string | null }) {
     /* ---------- State ---------- */
-    const [{ doc, error: opError, version, clientId, bounced }, act] = useReducer(syncReducer, initialDoc, initialSync);
+    const [{ doc, confirmed, error: opError, version, clientId, bounced }, act] = useReducer(syncReducer, initialDoc, initialSync);
 
     /* Optimistic (Stage 6): every op shows up on screen at once.
        Room: send it first to learn its clientSeq, then apply it as pending; the echo confirms it,
        a reject rolls it back (see sync/optimistic.ts). If the socket isn't open the op is dropped.
        Solo (roomId null): it goes straight into the doc. Either way the rest of the app just calls dispatch(op). */
-    const { status, send, claims, claim, release } = useRoomSocket(roomId, act);
+    const { status, send, claims, claim, release } = useRoomSocket(roomId, act, confirmed);
     // nodes someone else is dragging right now (nodeId -> their colour); they can't be grabbed until dropped
     const held = useMemo(() => heldByOthers(claims, clientId), [claims, clientId]);
     const dispatch = useCallback((op: Op) => {
@@ -155,6 +156,9 @@ function Editor({ roomId }: { roomId: string | null }) {
 
     // snap-back tag: my drop lost the race for a node someone else grabbed first, so it jumped back.
     // Shown until a timer marks that bounce (by its count) as seen; a new bounce has a new count and shows again.
+    // wake the sync server (Render free tier sleeps) as soon as the page loads, so Share isn't a ~50 s wait
+    useEffect(() => wakeServer(), []);
+
     const [seenBounce, setSeenBounce] = useState(0);
     useEffect(() => {
         if (!bounced) return;

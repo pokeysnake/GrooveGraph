@@ -1,0 +1,340 @@
+{
+  "app": "music-canvas",
+  "format": 1,
+  "ops": [
+    {
+      "type": "setSetting",
+      "opId": "groove-0",
+      "patch": {
+        "bpm": 112,
+        "eq": {
+          "low": 0,
+          "mid": 0,
+          "high": 0
+        }
+      }
+    },
+    {
+      "type": "moveNodes",
+      "opId": "groove-1",
+      "positions": {
+        "output": {
+          "x": 1120,
+          "y": 252
+        }
+      }
+    },
+    {
+      "type": "addNode",
+      "opId": "groove-2",
+      "node": {
+        "id": "kick-n",
+        "type": "notes",
+        "position": {
+          "x": 40,
+          "y": 0
+        },
+        "data": {
+          "name": "Kick",
+          "text": "x ~ ~ ~ x ~ ~ ~"
+        }
+      }
+    },
+    {
+      "type": "addNode",
+      "opId": "groove-3",
+      "node": {
+        "id": "kick",
+        "type": "instrument",
+        "position": {
+          "x": 420,
+          "y": 0
+        },
+        "data": {
+          "sound": "tr909-bd",
+          "muted": false,
+          "solo": false
+        }
+      }
+    },
+    {
+      "type": "addNode",
+      "opId": "groove-4",
+      "node": {
+        "id": "snare-n",
+        "type": "notes",
+        "position": {
+          "x": 40,
+          "y": 126
+        },
+        "data": {
+          "name": "Snare",
+          "text": "~ ~ x ~"
+        }
+      }
+    },
+    {
+      "type": "addNode",
+      "opId": "groove-5",
+      "node": {
+        "id": "snare",
+        "type": "instrument",
+        "position": {
+          "x": 420,
+          "y": 126
+        },
+        "data": {
+          "sound": "tr909-cp",
+          "muted": false,
+          "solo": false
+        }
+      }
+    },
+    {
+      "type": "addNode",
+      "opId": "groove-6",
+      "node": {
+        "id": "hat-n",
+        "type": "notes",
+        "position": {
+          "x": 40,
+          "y": 252
+        },
+        "data": {
+          "name": "Hats",
+          "text": "x x x x x x x x"
+        }
+      }
+    },
+    {
+      "type": "addNode",
+      "opId": "groove-7",
+      "node": {
+        "id": "hat",
+        "type": "instrument",
+        "position": {
+          "x": 420,
+          "y": 252
+        },
+        "data": {
+          "sound": "tr909-hh",
+          "muted": false,
+          "solo": false
+        }
+      }
+    },
+    {
+      "type": "addNode",
+      "opId": "groove-8",
+      "node": {
+        "id": "bass-n",
+        "type": "notes",
+        "position": {
+          "x": 40,
+          "y": 377
+        },
+        "data": {
+          "name": "Bass",
+          "text": "c2 ~ c2 eb2 ~ g1 ~ bb1"
+        }
+      }
+    },
+    {
+      "type": "addNode",
+      "opId": "groove-9",
+      "node": {
+        "id": "bass",
+        "type": "instrument",
+        "position": {
+          "x": 420,
+          "y": 377
+        },
+        "data": {
+          "sound": "saw",
+          "muted": false,
+          "solo": false
+        }
+      }
+    },
+    {
+      "type": "addNode",
+      "opId": "groove-10",
+      "node": {
+        "id": "lead-n",
+        "type": "notes",
+        "position": {
+          "x": 40,
+          "y": 503
+        },
+        "data": {
+          "name": "Lead",
+          "text": "<[c4 eb4 g4 bb4] [g4 f4 eb4 ~]>"
+        }
+      }
+    },
+    {
+      "type": "addNode",
+      "opId": "groove-11",
+      "node": {
+        "id": "lead",
+        "type": "instrument",
+        "position": {
+          "x": 420,
+          "y": 503
+        },
+        "data": {
+          "sound": "square",
+          "muted": false,
+          "solo": false
+        }
+      }
+    },
+    {
+      "type": "addNode",
+      "opId": "groove-12",
+      "node": {
+        "id": "bass-f",
+        "type": "filter",
+        "position": {
+          "x": 740,
+          "y": 377
+        },
+        "data": {
+          "kind": "lpf",
+          "value": 600,
+          "q": 4
+        }
+      }
+    },
+    {
+      "type": "addNode",
+      "opId": "groove-13",
+      "node": {
+        "id": "lead-fx",
+        "type": "fx",
+        "position": {
+          "x": 740,
+          "y": 503
+        },
+        "data": {
+          "effects": [
+            {
+              "id": "lead-fx-0",
+              "kind": "lpf",
+              "value": 2200,
+              "on": true,
+              "q": 0.7
+            },
+            {
+              "id": "lead-fx-1",
+              "kind": "delay",
+              "value": 0.35,
+              "on": true
+            },
+            {
+              "id": "lead-fx-2",
+              "kind": "room",
+              "value": 0.4,
+              "on": true
+            }
+          ]
+        }
+      }
+    },
+    {
+      "type": "addNode",
+      "opId": "groove-14",
+      "node": {
+        "id": "hat-g",
+        "type": "filter",
+        "position": {
+          "x": 740,
+          "y": 252
+        },
+        "data": {
+          "kind": "gain",
+          "value": 0.6,
+          "q": 0.7
+        }
+      }
+    },
+    {
+      "type": "connect",
+      "opId": "groove-15",
+      "source": "kick-n",
+      "target": "kick"
+    },
+    {
+      "type": "connect",
+      "opId": "groove-16",
+      "source": "snare-n",
+      "target": "snare"
+    },
+    {
+      "type": "connect",
+      "opId": "groove-17",
+      "source": "hat-n",
+      "target": "hat"
+    },
+    {
+      "type": "connect",
+      "opId": "groove-18",
+      "source": "bass-n",
+      "target": "bass"
+    },
+    {
+      "type": "connect",
+      "opId": "groove-19",
+      "source": "lead-n",
+      "target": "lead"
+    },
+    {
+      "type": "connect",
+      "opId": "groove-20",
+      "source": "bass",
+      "target": "bass-f"
+    },
+    {
+      "type": "connect",
+      "opId": "groove-21",
+      "source": "lead",
+      "target": "lead-fx"
+    },
+    {
+      "type": "connect",
+      "opId": "groove-22",
+      "source": "hat",
+      "target": "hat-g"
+    },
+    {
+      "type": "connect",
+      "opId": "groove-23",
+      "source": "kick",
+      "target": "output"
+    },
+    {
+      "type": "connect",
+      "opId": "groove-24",
+      "source": "snare",
+      "target": "output"
+    },
+    {
+      "type": "connect",
+      "opId": "groove-25",
+      "source": "hat-g",
+      "target": "output"
+    },
+    {
+      "type": "connect",
+      "opId": "groove-26",
+      "source": "bass-f",
+      "target": "output"
+    },
+    {
+      "type": "connect",
+      "opId": "groove-27",
+      "source": "lead-fx",
+      "target": "output"
+    }
+  ]
+}

@@ -1,15 +1,15 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { Doc, Op } from "@/model/types";
 import { starterDoc, starterOps } from "@/model/starter";
 import type { Claims, RejectMessage, ServerOpMessage } from "./protocol";
-import { connectRoom, type SocketLike, type Status } from "./roomSocket";
+import { backoffMs, connectRoom, ROOM_NOT_FOUND, type SocketLike, type Status } from "./roomSocket";
 
 class FakeSocket implements SocketLike {
   static last: FakeSocket;
   readyState = 0;
   onopen: (() => void) | null = null;
   onmessage: ((e: { data: unknown }) => void) | null = null;
-  onclose: (() => void) | null = null;
+  onclose: ((e?: { code?: number }) => void) | null = null;
   sent: string[] = [];
   closed = false;
   constructor(public url: string) {
@@ -131,10 +131,11 @@ describe("connectRoom", () => {
   });
 
   it("reports closed when the server drops", () => {
-    connect();
+    const room = connect();
     FakeSocket.last.open();
     FakeSocket.last.onclose?.();
     expect(statuses).toEqual(["connecting", "open", "closed"]);
+    room.close(); // cancel the reconnect it scheduled, so it can't fire during a later test
   });
 
   it("close() closes the socket and silences its handlers", () => {
@@ -202,5 +203,74 @@ describe("connectRoom: drag claims", () => {
     vi.advanceTimersByTime(3000);
     expect(sent().map((m) => m.type)).toEqual(["claim", "op", "release"]);
     vi.useRealTimers();
+  });
+});
+
+describe("connectRoom: auto-reconnect", () => {
+  beforeEach(() => vi.useFakeTimers());
+  afterEach(() => vi.useRealTimers());
+
+  it("backoff doubles from 0.5 s, caps at 30 s, and jitters to 50-100%", () => {
+    expect([0, 1, 2, 3].map((n) => backoffMs(n, () => 1))).toEqual([500, 1000, 2000, 4000]);
+    expect(backoffMs(20, () => 1)).toBe(30_000);
+    expect(backoffMs(0, () => 0)).toBe(250);
+  });
+
+  it("a dropped socket comes back by itself and the new one gets the fresh snapshot", () => {
+    connect();
+    const first = FakeSocket.last;
+    first.open();
+    first.onclose?.({ code: 1006 });
+    expect(FakeSocket.last).toBe(first); // nothing yet: it waits out the backoff
+    vi.advanceTimersByTime(500);
+    expect(FakeSocket.last).not.toBe(first);
+    expect(FakeSocket.last.url).toBe("ws://x/ws/r1");
+    expect(statuses).toEqual(["connecting", "open", "closed", "connecting"]);
+  });
+
+  it("each failed try waits longer, and a successful open resets the wait", () => {
+    vi.spyOn(Math, "random").mockReturnValue(1);
+    connect();
+    FakeSocket.last.onclose?.({ code: 1006 }); // never opened: server down
+    vi.advanceTimersByTime(500);
+    const second = FakeSocket.last;
+    second.onclose?.({ code: 1006 });
+    vi.advanceTimersByTime(999);
+    expect(FakeSocket.last).toBe(second); // second wait is 1 s, not 0.5 s
+    vi.advanceTimersByTime(1);
+    FakeSocket.last.open(); // back up
+    const third = FakeSocket.last;
+    third.onclose?.({ code: 1006 });
+    vi.advanceTimersByTime(500);
+    expect(FakeSocket.last).not.toBe(third); // reset to 0.5 s
+    vi.restoreAllMocks();
+  });
+
+  it("a lost room (4404) is rebuilt first, then the socket rejoins", async () => {
+    const onLost = vi.fn().mockResolvedValue(undefined);
+    connectRoom("ws://x/ws/r1", { onSnapshot() {}, onOp() {}, onReject() {}, onStatus() {}, onLost }, FakeSocket);
+    const first = FakeSocket.last;
+    first.onclose?.({ code: ROOM_NOT_FOUND });
+    expect(onLost).toHaveBeenCalledTimes(1);
+    await vi.advanceTimersByTimeAsync(500);
+    expect(FakeSocket.last).not.toBe(first);
+  });
+
+  it("a failed rebuild still retries (the server may just be booting)", async () => {
+    const onLost = vi.fn().mockRejectedValue(new Error("can't reach the server"));
+    connectRoom("ws://x/ws/r1", { onSnapshot() {}, onOp() {}, onReject() {}, onStatus() {}, onLost }, FakeSocket);
+    const first = FakeSocket.last;
+    first.onclose?.({ code: ROOM_NOT_FOUND });
+    await vi.advanceTimersByTimeAsync(500);
+    expect(FakeSocket.last).not.toBe(first);
+  });
+
+  it("close() stops any pending reconnect", () => {
+    const room = connect();
+    const first = FakeSocket.last;
+    first.onclose?.({ code: 1006 });
+    room.close();
+    vi.advanceTimersByTime(60_000);
+    expect(FakeSocket.last).toBe(first);
   });
 });

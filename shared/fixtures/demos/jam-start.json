@@ -1,0 +1,118 @@
+{
+  "app": "music-canvas",
+  "format": 1,
+  "ops": [
+    {
+      "type": "setSetting",
+      "opId": "jam-start-0",
+      "patch": {
+        "bpm": 110,
+        "eq": {
+          "low": 0,
+          "mid": 0,
+          "high": 0
+        }
+      }
+    },
+    {
+      "type": "moveNodes",
+      "opId": "jam-start-1",
+      "positions": {
+        "output": {
+          "x": 800,
+          "y": 96
+        }
+      }
+    },
+    {
+      "type": "addNode",
+      "opId": "jam-start-2",
+      "node": {
+        "id": "kick-n",
+        "type": "notes",
+        "position": {
+          "x": 40,
+          "y": 30
+        },
+        "data": {
+          "name": "Kick",
+          "text": "x ~ x ~"
+        }
+      }
+    },
+    {
+      "type": "addNode",
+      "opId": "jam-start-3",
+      "node": {
+        "id": "kick",
+        "type": "instrument",
+        "position": {
+          "x": 420,
+          "y": 30
+        },
+        "data": {
+          "sound": "tr909-bd",
+          "muted": false,
+          "solo": false
+        }
+      }
+    },
+    {
+      "type": "addNode",
+      "opId": "jam-start-4",
+      "node": {
+        "id": "hat-n",
+        "type": "notes",
+        "position": {
+          "x": 40,
+          "y": 163
+        },
+        "data": {
+          "name": "Hats",
+          "text": "~ x ~ x"
+        }
+      }
+    },
+    {
+      "type": "addNode",
+      "opId": "jam-start-5",
+      "node": {
+        "id": "hat",
+        "type": "instrument",
+        "position": {
+          "x": 420,
+          "y": 163
+        },
+        "data": {
+          "sound": "tr909-hh",
+          "muted": false,
+          "solo": false
+        }
+      }
+    },
+    {
+      "type": "connect",
+      "opId": "jam-start-6",
+      "source": "kick-n",
+      "target": "kick"
+    },
+    {
+      "type": "connect",
+      "opId": "jam-start-7",
+      "source": "hat-n",
+      "target": "hat"
+    },
+    {
+      "type": "connect",
+      "opId": "jam-start-8",
+      "source": "kick",
+      "target": "output"
+    },
+    {
+      "type": "connect",
+      "opId": "jam-start-9",
+      "source": "hat",
+      "target": "output"
+    }
+  ]
+}

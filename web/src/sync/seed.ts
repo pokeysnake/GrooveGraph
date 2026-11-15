@@ -85,13 +85,13 @@ export function downloadSaveFile(doc: Doc) {
 /* ---------- Server ---------- */
 
 /** asks the server for a new room seeded with these ops; resolves to its id, or throws with the server's reason */
-export async function createRoom(ops: Op[], fetchFn: typeof fetch = fetch): Promise<string> {
+export async function createRoom(ops: Op[], fetchFn: typeof fetch = fetch, roomId?: string): Promise<string> {
   let res: Response;
   try {
     res = await fetchFn(`${SERVER_HTTP}/api/rooms`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ops }),
+      body: JSON.stringify(roomId ? { ops, roomId } : { ops }),
     });
   } catch {
     throw new Error("can't reach the server");
@@ -99,4 +99,19 @@ export async function createRoom(ops: Op[], fetchFn: typeof fetch = fetch): Prom
   const body = (await res.json().catch(() => null)) as { roomId?: unknown; detail?: unknown } | null;
   if (res.ok && typeof body?.roomId === "string") return body.roomId;
   throw new Error(typeof body?.detail === "string" ? body.detail : `server error ${res.status}`);
+}
+
+/**
+ * The server restarted and forgot this room: put it back under the SAME id from our last confirmed copy, so
+ * everyone's link keeps working. If several clients notice at once, the first POST wins and the rest get 409
+ * "room already exists", which is fine: they just rejoin and receive the winner's rebuild in the snapshot.
+ * Ops still pending when the server died are lost (it never stored them).
+ */
+export async function rebuildRoom(roomId: string, confirmed: Doc, fetchFn: typeof fetch = fetch): Promise<void> {
+  try {
+    await createRoom(docToOps(confirmed), fetchFn, roomId);
+  } catch (e) {
+    if (e instanceof Error && e.message === "room already exists") return;
+    throw e;
+  }
 }
