@@ -7,7 +7,7 @@ import { usePartRef } from "@/canvas/partRefs";
 import "./instrument-node.css";
 
 const CATEGORY_LABEL: Record<(typeof SOUNDS)[number]["category"], string> = {
-  "synths": "Synths", "samples": "Samples", "soundfonts": "Instruments (GM)",
+  "synths": "Synths", "samples": "Samples", "soundfonts": "Instruments (GM)", "vcsl": "Real instruments",
   "drum-machines": "Drum machines", "dirt": "Dirt samples", "wavetables": "Wavetables",
 };
 // built once from the SOUNDS table, so a new sound shows up in the menu automatically
@@ -49,4 +49,4 @@ export default function InstrumentNode({ id, data }: NodeProps) {
       <Handle type="source" position={Position.Right} />
     </div>
   );
-}
+}

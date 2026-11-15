@@ -2,6 +2,8 @@ declare module "@strudel/web" {
   export function initStrudel(options?: Record<string, unknown>): Promise<unknown> | unknown;
   export function evaluate(code: string, autoplay?: boolean): Promise<unknown>;
   export function hush(): void;
+  /** registers the ZzFX chip synths: zzfx, z_sine, z_sawtooth, z_triangle, z_square, z_tan, z_noise */
+  export function registerZZFXSounds(): void;
   /** registers a sample map (URL to a strudel JSON, or an object); its _base is used when baseUrl is omitted */
   export function samples(sampleMap: string | Record<string, unknown>, baseUrl?: string): Promise<void>;
   /** the one audio graph everything plays through; destinationGain is the master gain before the speakers */

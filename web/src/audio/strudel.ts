@@ -29,6 +29,17 @@ export async function  setVolume(v: number): Promise<void> {
 // need their sample maps registered too. These are the same maps strudel.cc loads.
 const DOUGH = "https://raw.githubusercontent.com/felixroos/dough-samples/main";
 
+/**
+ * loads a dough-samples pack whose names are plain ("bd", "sd"...) under a bank prefix ("EmuSP12_bd"),
+ * so s("bd").bank("EmuSP12") reaches it and it doesn't overwrite Dirt-Samples' own "bd"
+ */
+async function banked(s: Awaited<ReturnType<typeof load>>, pack: string) {
+  const map: Record<string, unknown> = await (await fetch(`${DOUGH}/${pack}.json`)).json();
+  const { _base, ...sounds } = map;
+  const renamed = Object.fromEntries(Object.entries(sounds).map(([name, files]) => [`${pack}_${name}`, files]));
+  return s.samples(renamed, String(_base));
+}
+
 async function load() {
   return import("@strudel/web");
 }
@@ -50,6 +61,10 @@ export async function play(code: string, notesSpans: NotesSpan[] = []): Promise<
           s.samples(`${DOUGH}/piano.json`),
           s.samples(`${DOUGH}/tidal-drum-machines.json`),
           s.samples("github:tidalcycles/dirt-samples"),
+          s.samples(`${DOUGH}/vcsl.json`),
+          banked(s, "EmuSP12"),
+          // ZzFX retro chip synths (z_square...); initStrudel only registers the basic synths on its own
+          Promise.resolve(s.registerZZFXSounds()),
           // General MIDI instruments (gm_epiano1, gm_music_box...); each font downloads the first time it plays
           import("@strudel/soundfonts").then((sf) => sf.registerSoundfonts()),
         ]),

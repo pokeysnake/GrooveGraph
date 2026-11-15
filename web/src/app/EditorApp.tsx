@@ -32,6 +32,7 @@ import OutputNode from "@/nodes/OutputNode";
 import CatGroupNode from "@/nodes/CatGroupNode";
 import CableEdge from "@/canvas/CableEdge";
 import NotesEditor, { type Rect } from "@/ui/NotesEditor";
+import FiltersInfo from "@/ui/FiltersInfo";
 import ShareButton from "@/ui/ShareButton";
 import { Square } from "lucide-react";
 import { BEATS_PER_BAR, compile } from "@/model/compile";
@@ -189,6 +190,9 @@ function Editor({ roomId }: { roomId: string | null }) {
         const r = el?.getBoundingClientRect();
         setEditingAt({ id: node.id, from: r ? { top: r.top, left: r.left, width: r.width, height: r.height } : null });
     }, []);
+
+    // the Filters help popup; holds where the "i" button was so the popup can grow out of it (null = closed)
+    const [filtersInfoAt, setFiltersInfoAt] = useState<{ from: Rect | null } | null>(null);
 
     /* BPM: a local draft only while typing (same pattern as FilterNode). When not typing (draft = null) the box
        shows the doc's BPM, so a change from another client (Stage 5) shows up with no extra syncing. */
@@ -537,7 +541,14 @@ function Editor({ roomId }: { roomId: string | null }) {
                         </div>
                     ))}
 
-                    <h4>Filters</h4>
+                    <h4 className="with-info">
+                        Filters
+                        <button type="button" className="info-btn" aria-label="What the filters do" title="What the filters do"
+                            onClick={(e) => {
+                                const r = e.currentTarget.getBoundingClientRect();
+                                setFiltersInfoAt({ from: { top: r.top, left: r.left, width: r.width, height: r.height } });
+                            }}>i</button>
+                    </h4>
                     {PALETTE_FILTERS.map((item) => (
                         <div key={item.kind} className="chip" data-type="filter" draggable
                             onDragStart={(e) => onDragStart(e, item)}>
@@ -551,6 +562,8 @@ function Editor({ roomId }: { roomId: string | null }) {
                     <span>made with <a href="https://strudel.cc" target="_blank" rel="noreferrer">strudel</a> (AGPL-3.0)</span>
                     <span>this app is AGPL-3.0 too · <a href="https://github.com/pokeysnake/MusicalCanvas" target="_blank" rel="noreferrer">source code</a></span>
                 </footer>
+
+                {filtersInfoAt && <FiltersInfo from={filtersInfoAt.from} onClose={() => setFiltersInfoAt(null)} />}
 
                 {/* outside <ReactFlow>, so typing in it never reaches the canvas */}
                 {editing?.type === "notes" && (

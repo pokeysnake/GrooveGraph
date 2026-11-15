@@ -164,6 +164,18 @@ describe("compile", () => {
     );
     expect(compile(doc).code).toBe(code('note("c4").s("sawtooth")'));
   });
+
+  it("writes the new one-knob effects as plain Strudel calls", () => {
+    const doc = docOf(
+      [notes("n", "c4"), inst("i", "saw"), fxRack("x", [
+        row("e1", "crush", 6), row("e2", "coarse", 4), row("e3", "distort", 0.5),
+        row("e4", "shape", 0.4), row("e5", "phaser", 2), row("e6", "pan", 0.25),
+      ])],
+      [["n", "i"], ["i", "x"], ["x", OUT]],
+    );
+    expect(compile(doc).code).toBe(
+      code('note("c4").s("sawtooth").crush(6).coarse(4).distort(0.5).shape(0.4).phaser(2).pan(0.25)'));
+  });
 });
 /* ---------- FX rack ---------- */
 const fxRack = (id: string, effects: FxEffect[]): GraphNode =>

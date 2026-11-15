@@ -24,7 +24,10 @@ import "./fx-rack.css";
  * dragging and send the op on release, so a drag is one op, not hundreds (same idea as FilterNode's draft-on-blur).
  */
 
-const SHORT: Record<FilterKind, string> = { lpf: "LPF", hpf: "HPF", bpf: "BPF", room: "REV", delay: "DLY", gain: "GAIN" };
+const SHORT: Record<FilterKind, string> = {
+    lpf: "LPF", hpf: "HPF", bpf: "BPF", room: "REV", delay: "DLY", gain: "GAIN",
+    crush: "CRSH", coarse: "DWN", distort: "DIST", shape: "SAT", phaser: "PHS", pan: "PAN",
+};
 // Hz and Q use a log scale (slider 0..STEPS) so the slider isn't all bunched up at the low end
 const STEPS = 1000;
 const toLog = (min: number, max: number, v: number) => (Math.log(v / min) / Math.log(max / min)) * STEPS;
@@ -39,7 +42,7 @@ function fromSlider(kind: FilterKind, s: number): number {
     return f.unit === "Hz" ? Math.round(fromLog(f.min, f.max, s)) : s;
 }
 function show(kind: FilterKind, v: number): string {
-    if (FILTERS[kind].unit !== "Hz") return v.toFixed(2);
+    if (FILTERS[kind].unit !== "Hz") return FILTERS[kind].step >= 1 ? String(Math.round(v)) : v.toFixed(2);
     return v >= 1000 ? `${(v / 1000).toFixed(1)}k` : `${Math.round(v)}`;
 }
 const qFromSlider = (s: number) => Math.round(fromLog(Q.min, Q.max, s) * 10) / 10; // one decimal, like FilterNode

@@ -8,7 +8,7 @@ export type SoundKind = "pitched" | "percussion";
 export type SoundDef = {
   id: string;
   label: string;
-  category: "synths" | "samples" | "soundfonts" | "drum-machines" | "dirt" | "wavetables";  // menu groups, after strudel.cc's sounds panel
+  category: "synths" | "samples" | "soundfonts" | "vcsl" | "drum-machines" | "dirt" | "wavetables";  // menu groups, after strudel.cc's sounds panel
   kind: SoundKind;                                    // pitched: note("..."), percussion: rhythm via struct("...")
   strudel: { s: string; bank?: string; n?: number };  // what the compiler writes: s(...).bank(...).n(...)
 };
@@ -16,6 +16,17 @@ export type SoundDef = {
 const TR909 = "RolandTR909";
 const drum909 = (s: string, label: string): SoundDef =>
   ({ id: `tr909-${s}`, label: `909 ${label}`, category: "drum-machines", kind: "percussion", strudel: { s, bank: TR909 } });
+
+// one machine's kit from a bank: kit("tr808", "RolandTR808", "808", [["bd", "Kick"], ...]) -> ids tr808-bd...
+const kit = (idPrefix: string, bank: string, labelPrefix: string, parts: [string, string][]): SoundDef[] =>
+  parts.map(([s, label]) =>
+    ({ id: `${idPrefix}-${s}`, label: `${labelPrefix} ${label}`, category: "drum-machines", kind: "percussion", strudel: { s, bank } }));
+const CORE_KIT: [string, string][] =
+  [["bd", "Kick"], ["sd", "Snare"], ["hh", "Closed Hat"], ["oh", "Open Hat"], ["cp", "Clap"], ["rim", "Rim"]];
+
+// vcsl (Versilian Community Sample Library): real recorded instruments. Pitched ones have a sample per note
+const vcsl = (s: string, label: string, kind: SoundKind = "pitched"): SoundDef =>
+  ({ id: `vcsl-${s.replaceAll("_", "-")}`, label, category: "vcsl", kind, strudel: { s } });
 
 const gm = (name: string, label: string): SoundDef =>
   ({ id: `gm-${name.replaceAll("_", "-")}`, label, category: "soundfonts", kind: "pitched", strudel: { s: `gm_${name}` } });
@@ -27,6 +38,21 @@ export const SOUNDS: readonly SoundDef[] = [
   { id: "square",   label: "Square",   category: "synths", kind: "pitched", strudel: { s: "square" } },
   { id: "triangle", label: "Triangle", category: "synths", kind: "pitched", strudel: { s: "triangle" } },
   { id: "sine",     label: "Sine",     category: "synths", kind: "pitched", strudel: { s: "sine" } },
+  { id: "supersaw", label: "Supersaw", category: "synths", kind: "pitched", strudel: { s: "supersaw" } },
+  { id: "pulse", label: "Pulse", category: "synths", kind: "pitched", strudel: { s: "pulse" } },
+  // ZzFX: tiny retro game-console synths
+  { id: "zzfx-square", label: "Chip Square", category: "synths", kind: "pitched", strudel: { s: "z_square" } },
+  { id: "zzfx-saw", label: "Chip Saw", category: "synths", kind: "pitched", strudel: { s: "z_sawtooth" } },
+  { id: "zzfx-triangle", label: "Chip Triangle", category: "synths", kind: "pitched", strudel: { s: "z_triangle" } },
+  { id: "zzfx-sine", label: "Chip Sine", category: "synths", kind: "pitched", strudel: { s: "z_sine" } },
+  { id: "zzfx-tan", label: "Chip Tan", category: "synths", kind: "pitched", strudel: { s: "z_tan" } },
+  // synth percussion: no samples, made by the engine
+  { id: "sbd", label: "Synth Kick", category: "synths", kind: "percussion", strudel: { s: "sbd" } },
+  { id: "white", label: "White Noise", category: "synths", kind: "percussion", strudel: { s: "white" } },
+  { id: "pink", label: "Pink Noise", category: "synths", kind: "percussion", strudel: { s: "pink" } },
+  { id: "brown", label: "Brown Noise", category: "synths", kind: "percussion", strudel: { s: "brown" } },
+  { id: "crackle", label: "Crackle", category: "synths", kind: "percussion", strudel: { s: "crackle" } },
+  { id: "zzfx-noise", label: "Chip Noise", category: "synths", kind: "percussion", strudel: { s: "z_noise" } },
   { id: "piano",    label: "Piano",    category: "samples", kind: "pitched", strudel: { s: "piano" } },
   drum909("bd", "Kick"),
   drum909("sd", "Snare"),
@@ -34,6 +60,41 @@ export const SOUNDS: readonly SoundDef[] = [
   drum909("oh", "Open Hat"),
   drum909("cp", "Clap"),
   drum909("cr", "Crash"),
+  // more machines from tidal-drum-machines (already loaded for the 909)
+  ...kit("tr808", "RolandTR808", "808", [...CORE_KIT, ["cb", "Cowbell"], ["lt", "Low Tom"], ["cr", "Crash"]]),
+  ...kit("tr707", "RolandTR707", "707", [...CORE_KIT, ["cr", "Crash"]]),
+  ...kit("linn", "LinnDrum", "Linn", [...CORE_KIT, ["sh", "Shaker"], ["tb", "Tambourine"]]),
+  ...kit("mpc60", "AkaiMPC60", "MPC60", [...CORE_KIT, ["rd", "Ride"]]),
+  ...kit("sp12", "EmuSP12", "SP-12", [...CORE_KIT, ["rd", "Ride"], ["cr", "Crash"]]),
+  // vcsl: pitched instruments
+  vcsl("steinway", "Steinway Grand"),
+  vcsl("fmpiano", "FM Piano"),
+  vcsl("organ_full", "Organ"),
+  vcsl("pipeorgan_quiet", "Pipe Organ"),
+  vcsl("marimba", "Marimba (real)"),
+  vcsl("vibraphone", "Vibraphone (real)"),
+  vcsl("glockenspiel", "Glockenspiel (real)"),
+  vcsl("xylophone_medium_ff", "Xylophone"),
+  vcsl("kalimba", "Kalimba (real)"),
+  vcsl("tubularbells", "Tubular Bells (real)"),
+  vcsl("harp", "Harp"),
+  vcsl("psaltery_pluck", "Psaltery Pluck"),
+  vcsl("ocarina", "Ocarina"),
+  vcsl("recorder_alto_sus", "Recorder"),
+  vcsl("super64", "Harmonica"),
+  // vcsl: percussion
+  vcsl("conga", "Conga", "percussion"),
+  vcsl("bongo", "Bongo", "percussion"),
+  vcsl("cajon", "Cajon", "percussion"),
+  vcsl("darbuka", "Darbuka", "percussion"),
+  vcsl("tambourine", "Tambourine", "percussion"),
+  vcsl("shaker_small", "Shaker", "percussion"),
+  vcsl("cowbell", "Cowbell", "percussion"),
+  vcsl("woodblock", "Woodblock", "percussion"),
+  vcsl("clave", "Clave", "percussion"),
+  vcsl("triangles", "Triangle (bell)", "percussion"),
+  vcsl("handbells", "Handbells", "percussion"),
+  vcsl("sleighbells", "Sleigh Bells", "percussion"),
   // General MIDI soundfonts (@strudel/soundfonts): a hand-picked slice of the 128, grouped by feel
   gm("epiano1", "E-Piano"),
   gm("epiano2", "FM E-Piano"),

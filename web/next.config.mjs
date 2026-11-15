@@ -6,11 +6,11 @@ const nextConfig = {
   // Turbopack refuses files outside its root, and by default the root is web/
   turbopack: {
     root: fileURLToPath(new URL("..", import.meta.url)),
-    // @strudel/web is one prebuilt bundle with its own copy of core + webaudio inside. @strudel/soundfonts
-    // imports those packages by name, which would load a second, separate audio engine where its sounds
-    // register unheard. Pointing both names at the bundle makes everyone share the one engine.
+    // @strudel/web is one prebuilt bundle with its own audio engine inside. @strudel/soundfonts imports
+    // @strudel/webaudio by name, which would load a second, separate engine where its sounds register
+    // unheard, so that name points at the bundle. @strudel/core is left alone: @strudel/mini needs the
+    // real package, and the soundfont code only uses plain helpers from it.
     resolveAlias: {
-      "@strudel/core": "@strudel/web",
       "@strudel/webaudio": "@strudel/web",
     },
   },
