@@ -99,6 +99,7 @@ html .side .chip::before {
 html .side .chip[data-type="notes"]::before { content: "N"; }
 html .side .chip[data-type="instrument"]::before { content: "I"; }
 html .side .chip[data-type="fx"]::before { content: "FX"; }
+html .side .chip[data-type="arrange"]::before { content: "AR"; }
 html .side .chip[data-type="filter"]::before { content: "F"; }
 
 /* ---------- Wires (canvas/CableEdge.tsx): right-angle runs, arrowheads, junction dots ---------- */
