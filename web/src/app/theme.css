@@ -14,6 +14,7 @@ html .instrument-node { --nc: var(--instrument); }
 html .filter-node { --nc: var(--filter); }
 html .output-node { --nc: var(--output); }
 html .fx-rack { --nc: var(--filter); }
+html .arrange-node { --nc: var(--instrument); } /* also a .filter-node card, so this must come after it */
 
 /* eyebrow labels ("NOTES", "FILTER", ...) */
 html :is(.notes-node__eyebrow, .instrument-node__eyebrow, .filter-node__eyebrow, .output-node__eyebrow, .fx-rack__eyebrow) {

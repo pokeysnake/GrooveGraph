@@ -225,3 +225,34 @@ describe("compile: fx rack", () => {
     expect(r.issues).toEqual([{ nodeId: "x", message: "unknown effect: chorus" }]);
   });
 });
+
+const arr = (id: string, bars: Record<string, number> = {}, y = 0): GraphNode =>
+  ({ id, type: "arrange", position: at(y), data: { bars } });
+const at2 = (n: GraphNode, y: number): GraphNode => ({ ...n, position: at(y) });
+
+describe("compile: arrange", () => {
+  it("each input is a section with its bar count, top to bottom, and joins the Output without a cable", () => {
+    const doc = docOf(
+      [notes("n1", "c4"), notes("n2", "e4"), at2(inst("i1", "saw"), 0), at2(inst("i2", "square"), 10), arr("a", { i2: 8 })],
+      [["n1", "i1"], ["n2", "i2"], ["i1", "a"], ["i2", "a"]],
+    );
+    expect(compile(doc).code).toBe(
+      code('arrange([4, note("c4").s("sawtooth")], [8, note("e4").s("square")])'),
+    );
+  });
+
+  it("stacks with what is cabled into the Output", () => {
+    const doc = docOf(
+      [notes("n1", "c4"), notes("n2", "e4"), inst("i1", "saw"), inst("i2", "square"), arr("a")],
+      [["n1", "i1"], ["n2", "i2"], ["i1", OUT], ["i2", "a"]],
+    );
+    expect(compile(doc).code).toBe(
+      code('stack(note("c4").s("sawtooth"), arrange([4, note("e4").s("square")]))'),
+    );
+  });
+
+  it("an empty arrange is silent and skips inputs with nothing to play", () => {
+    const doc = docOf([inst("i1", "saw"), arr("a")], [["i1", "a"]]);
+    expect(compile(doc).code).toBe(code("silence"));
+  });
+});

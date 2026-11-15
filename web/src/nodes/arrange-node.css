@@ -1,0 +1,66 @@
+/* Arrange node: reuses the Filter card (filter-node.css) and adds the section list */
+
+.react-flow__node-arrange,
+.react-flow__node-arrange.selected,
+.react-flow__node-arrange:hover {
+  padding: 0;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.arrange-node { width: 260px; }
+
+.arrange-node__sub {
+  font-size: 12px;
+  color: var(--muted-on-tile);
+  font-family: var(--font-mono);
+}
+
+.arrange-node__out {
+  margin-left: auto;
+  font-size: 10px;
+  font-family: var(--font-mono);
+  letter-spacing: 0.08em;
+  color: var(--nc, var(--muted-on-tile));
+  white-space: nowrap;
+}
+
+.arrange-node__list {
+  list-style: none;
+  margin: 0;
+  padding: 8px 14px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.arrange-node__row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.arrange-node__num {
+  width: 16px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--muted-on-tile);
+}
+
+.arrange-node__label {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 13px;
+}
+
+.arrange-node__bars { width: 52px; }
+
+.arrange-node__empty {
+  font-size: 12px;
+  color: var(--muted-on-tile);
+}

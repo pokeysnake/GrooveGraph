@@ -9,7 +9,7 @@ import type { Doc, NodeType } from "@/model/types";
  * Numbered per type in the Doc's key order, which is the order the addNode ops were applied. Every client replays
  * the same op log, so everyone sees the same numbers. Deleting a part renumbers the ones added after it.
  */
-export const PART_PREFIX: Record<NodeType, string> = { notes: "N", instrument: "I", filter: "F", fx: "FX", output: "OUT" };
+export const PART_PREFIX: Record<NodeType, string> = { notes: "N", instrument: "I", filter: "F", fx: "FX", output: "OUT", arrange: "AR" };
 
 export function partRefs(doc: Doc): Record<string, string> {
   const count: Partial<Record<NodeType, number>> = {};

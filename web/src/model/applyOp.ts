@@ -38,7 +38,20 @@ const EDITABLE_FIELDS: Record<NodeType, string[]> = {
   filter: ["kind", "value", "q"],
   fx: ["effects"],
   output: [],
+  arrange: ["bars"],
 };
+
+export const MAX_BARS = 64;
+
+/** an Arrange node's {inputId: bar count}; each count a whole number 1..MAX_BARS (null = fine). Mirrors bad_bars */
+export function badBars(bars: unknown): string | null {
+  if (typeof bars !== "object" || bars === null || Array.isArray(bars)) return "bars must be an object";
+  for (const [k, v] of Object.entries(bars)) {
+    if (!Number.isInteger(v) || (v as number) < 1 || (v as number) > MAX_BARS)
+      return `bars for ${k} must be a whole number from 1 to ${MAX_BARS}`;
+  }
+  return null;
+}
 
 /**
  * An FX rack's `effects` list arrives as JSON, so check every row's shape (null = fine, else why not).
@@ -97,6 +110,10 @@ export function applyOp(doc: Doc, op: Op): ApplyResult {
       if (badPosition(op.node.position)) return reject("position must be finite numbers");
       if (op.node.type === "fx") {
         const why = badEffects(op.node.data.effects);
+        if (why) return reject(why);
+      }
+      if (op.node.type === "arrange") {
+        const why = badBars(op.node.data.bars);
         if (why) return reject(why);
       }
       const badField = badNumberField(op.node.data);
@@ -173,6 +190,10 @@ export function applyOp(doc: Doc, op: Op): ApplyResult {
         return reject(`unknown sound: ${op.patch.sound}`);
       if (op.patch.effects !== undefined) {
         const why = badEffects(op.patch.effects);
+        if (why) return reject(why);
+      }
+      if (op.patch.bars !== undefined) {
+        const why = badBars(op.patch.bars);
         if (why) return reject(why);
       }
       const badField = badNumberField(op.patch);

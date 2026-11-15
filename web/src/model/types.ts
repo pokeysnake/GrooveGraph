@@ -7,6 +7,9 @@ export type InstrumentData = { sound: string; muted: boolean; solo: boolean };
 export type FilterData = { kind: FilterKind; value: number; q: number };
 export type OutputData = Record<string, never>; //an object with no fields
 
+/** Arrange: each input chain is a section; bars maps input node id -> bar count (missing = DEFAULT_BARS) */
+export type ArrangeData = { bars: Record<string, number> };
+
 /**
  * FX rack: several effects in ONE node instead of a chain of Filter nodes.
  * - each row is one effect; `on: false` = bypassed (kept, but not compiled)
@@ -27,7 +30,8 @@ export type GraphNode =
   | (NodeBase & { type: "instrument"; data: InstrumentData })
   | (NodeBase & { type: "filter"; data: FilterData })
   | (NodeBase & { type: "fx"; data: FxData })
-  | (NodeBase & { type: "output"; data: OutputData });
+  | (NodeBase & { type: "output"; data: OutputData })
+  | (NodeBase & { type: "arrange"; data: ArrangeData });
 
 export type NodeType = GraphNode["type"]; // "notes" | "instrument" | "filter" | "output"
 
@@ -66,7 +70,7 @@ export type Doc = {
 // Ops --> complete list of ways the song can change
 type OpBase = { opId: string }; //unique per op; used for de-duping later
 
-export type NodePatch = Partial<NotesData & InstrumentData & FilterData & FxData>;
+export type NodePatch = Partial<NotesData & InstrumentData & FilterData & FxData & ArrangeData>;
 
 export type Op =
   | (OpBase & { type: "addNode"; node: GraphNode })

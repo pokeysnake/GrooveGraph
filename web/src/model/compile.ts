@@ -15,6 +15,10 @@ export type CompileResult = { code: string; issues: CompileIssue[] };
 type InstrumentNode = Extract<GraphNode, {type:"instrument"}>;
 type FilterNode = Extract<GraphNode, { type: "filter" }>
 type FxNode = Extract<GraphNode, { type: "fx" }>;
+type ArrangeNode = Extract<GraphNode, { type: "arrange" }>;
+
+// bars a section plays when its Arrange has no count for it yet (1 cycle = 1 bar)
+export const DEFAULT_BARS = 4;
 
 // Q for an FX row that doesn't carry one (same default the Filter node starts with)
 const DEFAULT_Q = Q.def;
@@ -133,12 +137,30 @@ export function compile(doc:Doc): CompileResult {
         return expr;
     }
 
+    /**
+     * Arrange: each input is a section that plays for its bar count, in order top to bottom, then loops, e.g.
+     *   arrange([4, verse], [8, chorus])
+     * inputs with nothing to play are skipped; a missing or bad count falls back to DEFAULT_BARS.
+     */
+    function arrangeExpr(node: ArrangeNode): string | null {
+        const sections: string[] = [];
+        for (const src of inputsOf(node.id)) {
+            const expr = exprOf(src);
+            if (expr === null) continue;
+            const b = node.data.bars?.[src.id];
+            const bars = Number.isInteger(b) && b >= 1 ? b : DEFAULT_BARS;
+            sections.push(`[${bars}, ${expr}]`);
+        }
+        return sections.length > 0 ? `arrange(${sections.join(", ")})` : null;
+    }
+
     // build a node's code from scratch (null = nothing to play); Notes are read by their instrument
     function buildExpr(node: GraphNode): string | null {
         switch (node.type) {
             case "instrument": return instrumentExpr(node);
             case "filter":     return filterExpr(node);
             case "fx":         return fxExpr(node);
+            case "arrange":    return arrangeExpr(node);
             default:           return null;
         }
     }
@@ -159,7 +181,9 @@ export function compile(doc:Doc): CompileResult {
         return expr;
     }
 
-    const parts = inputExprs(OUTPUT_ID);
+    // cabled inputs first, then every live Arrange top to bottom (they join the Output wirelessly)
+    const arranges = nodes.filter((n) => n.type === "arrange" && live.has(n.id)).sort(byPosition);
+    const parts = [...inputExprs(OUTPUT_ID), ...arranges.map(exprOf).filter((e): e is string => e !== null)];
     const body = parts.length > 0 ? stackOf(parts) : "silence";
     const code = [`setcpm(${doc.settings.bpm}/${BEATS_PER_BAR})`, ...vars, body].join("\n");
     return { code, issues: [...issues].map(([nodeId, message]) => ({ nodeId, message })) };

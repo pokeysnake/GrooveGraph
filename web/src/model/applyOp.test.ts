@@ -422,3 +422,72 @@ describe("applyOp: fx rack", () => {
     expect(() => applyOp(doc, setEffects("x", []))).not.toThrow();
   });
 });
+
+// mirrors the ARRANGE block in server/tests/test_apply_op.py
+describe("applyOp: arrange", () => {
+  const arrange = (id: string, bars: Record<string, unknown> = {}): GraphNode =>
+    ({ id, type: "arrange", position: { x: 0, y: 0 }, data: { bars } }) as GraphNode;
+  const setBars = (id: string, bars: unknown): Op =>
+    ({ type: "updateNodeData", opId: opId(), id, patch: { bars } }) as Op;
+
+  it("instrument, filter and fx can all plug into an arrange", () => {
+    const doc = applyAll(emptyDoc(), [
+      add(instrument("i")), add(filter("f")), add(fx("x")), add(arrange("a")),
+      connect("i", "a"), connect("f", "a"), connect("x", "a"),
+    ]);
+    expect(Object.keys(doc.edges).sort()).toEqual([edgeId("f", "a"), edgeId("i", "a"), edgeId("x", "a")]);
+  });
+
+  it("arrange has no output cable and notes cannot plug in", () => {
+    const doc = applyAll(emptyDoc(), [add(notes("n")), add(filter("f")), add(arrange("a"))]);
+    expect(mustReject(doc, connect("a", OUTPUT_ID))).toBe("arrange cannot connect to output");
+    expect(mustReject(doc, connect("a", "f"))).toBe("arrange cannot connect to filter");
+    expect(mustReject(doc, connect("n", "a"))).toBe("notes cannot connect to arrange");
+  });
+
+  it("a chain into arrange is live without an output cable", () => {
+    const doc = applyAll(emptyDoc(), [
+      add(notes("n")), add(instrument("i")), add(arrange("a")), connect("n", "i"), connect("i", "a"),
+    ]);
+    const live = nodesReachingOutput(Object.values(doc.nodes), Object.values(doc.edges));
+    for (const id of ["n", "i", "a", OUTPUT_ID]) expect(live.has(id)).toBe(true);
+  });
+
+  it("arrange is not live when there is no output", () => {
+    const live = nodesReachingOutput([arrange("a"), instrument("i")], [{ source: "i", target: "a" }]);
+    expect(live.size).toBe(0);
+  });
+
+  it("updateNodeData sets bars", () => {
+    const doc = mustApply(mustApply(emptyDoc(), add(arrange("a"))), setBars("a", { i: 8, f: 1 }));
+    expect(doc.nodes.a.data).toEqual({ bars: { i: 8, f: 1 } });
+  });
+
+  it("rejects bad bars", () => {
+    const msg = "bars for i must be a whole number from 1 to 64";
+    const cases: [unknown, string][] = [
+      ["4", "bars must be an object"],
+      [[4], "bars must be an object"],
+      [null, "bars must be an object"],
+      [{ i: 0 }, msg], [{ i: 65 }, msg], [{ i: 2.5 }, msg], [{ i: "4" }, msg],
+      [{ i: true }, msg], [{ i: Infinity }, msg], [{ i: NaN }, msg],
+    ];
+    const doc = mustApply(emptyDoc(), add(arrange("a")));
+    for (const [bars, reason] of cases) {
+      expect(mustReject(doc, setBars("a", bars))).toBe(reason);
+      expect(mustReject(emptyDoc(), add({ ...arrange("b"), data: { bars } } as GraphNode))).toBe(reason);
+    }
+  });
+
+  it("arrange only takes `bars`, and other nodes don't take it", () => {
+    const doc = applyAll(emptyDoc(), [add(arrange("a")), add(filter("f"))]);
+    expect(mustReject(doc, { type: "updateNodeData", opId: opId(), id: "a", patch: { value: 5 } }))
+      .toBe("arrange has no field(s): value");
+    expect(mustReject(doc, setBars("f", {}))).toBe("filter has no field(s): bars");
+  });
+
+  it("never modifies the input doc", () => {
+    const doc = deepFreeze(mustApply(emptyDoc(), add(arrange("a"))));
+    expect(() => applyOp(doc, setBars("a", { i: 8 }))).not.toThrow();
+  });
+});

@@ -7,7 +7,7 @@ import type { GraphNode, Position } from "@/model/types";
 
 // no Output chip: every room starts with exactly one and it can't be deleted, so adding one is always rejected
 export type PaletteItem = {
-    type: "notes" | "instrument" | "filter" | "fx";
+    type: "notes" | "instrument" | "filter" | "fx" | "arrange";
     kind?: FilterKind;   // only for filters
     label: string;
 };
@@ -16,6 +16,7 @@ export const PALETTE_NODES: PaletteItem[] = [
     { type: "notes", label: "Notes" },
     { type: "instrument", label: "Instrument" },
     { type: "fx", label: "FX Rack" }, // several effects in one node; drop effect chips onto it
+    { type: "arrange", label: "Arrange" }, // song form: each input chain plays for N bars, in order
 ];
 
 // built from the FILTERS table, so a new filter type gets a chip automatically
@@ -33,6 +34,7 @@ export function newNode(item: PaletteItem, id: string, position: Position): Grap
             return { id, position, type: "filter", data: { kind: k, value: FILTERS[k].def, q: Q.def } };
         }
         case "fx": return { id, position, type: "fx", data: { effects: [] } }; // starts empty: add or drop effects in
+        case "arrange": return { id, position, type: "arrange", data: { bars: {} } }; // every input starts at DEFAULT_BARS
     }
 }
 

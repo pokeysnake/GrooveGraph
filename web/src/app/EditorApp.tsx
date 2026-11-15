@@ -23,6 +23,7 @@ import NotesNode from "@/nodes/NotesNode";
 import InstrumentNode from "@/nodes/InstrumentNode";
 import FilterNode from "@/nodes/FilterNode";
 import FxRackNode, { newEffect } from "@/nodes/FxRackNode";
+import ArrangeNode from "@/nodes/ArrangeNode";
 import type { Op, Position } from "@/model/types";
 import { DRAG_TYPE, newNode, PALETTE_FILTERS, PALETTE_NODES, type PaletteItem } from "@/canvas/palette";
 import { starterDoc } from "@/model/starter";
@@ -48,6 +49,7 @@ const nodeTypes = {
     filter: FilterNode,
     output: OutputNode,
     fx: FxRackNode, // several effects in one node
+    arrange: ArrangeNode, // song form, joins the Output without a cable
     catGroup: CatGroupNode, // frame behind a cat sequence; drawn from the wiring, not stored in the Doc
 }; // declared OUTSIDE the component so React Flow doesn't remount nodes every render
 const edgeTypes = { cable: CableEdge }; // every wire is a patch cable (canvas/CableEdge.tsx)
