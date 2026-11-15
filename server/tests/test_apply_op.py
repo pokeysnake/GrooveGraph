@@ -661,3 +661,108 @@ def test_fx_ops_never_modify_the_input_doc():
     apply_op(doc, set_effects("x", []))
     apply_op(doc, set_effects("x", "bad"))
     assert doc == before
+
+
+# ARRANGE: chains plug in, each input is a section with a bar count, joins the Output wirelessly
+def arrange(node_id: str, bars: dict | None = None) -> dict:
+    return {
+        "id": node_id,
+        "type": "arrange",
+        "position": {"x": 0, "y": 0},
+        "data": {"bars": bars if bars is not None else {}},
+    }
+
+
+def test_adds_an_arrange_and_wires_instrument_filter_fx_into_it():
+    doc = apply_all(
+        empty_doc(),
+        [
+            add(instrument("i")),
+            add(filt("f")),
+            add(fx("x")),
+            add(arrange("a")),
+            connect("i", "a"),
+            connect("f", "a"),
+            connect("x", "a"),
+        ],
+    )
+    assert set(doc["edges"]) == {
+        edge_id("i", "a"),
+        edge_id("f", "a"),
+        edge_id("x", "a"),
+    }
+
+
+def test_arrange_has_no_output_cable_and_notes_cannot_plug_in():
+    doc = apply_all(empty_doc(), [add(notes("n")), add(filt("f")), add(arrange("a"))])
+    assert must_reject(doc, connect("a", OUTPUT_ID)) == "arrange cannot connect to output"
+    assert must_reject(doc, connect("a", "f")) == "arrange cannot connect to filter"
+    assert must_reject(doc, connect("n", "a")) == "notes cannot connect to arrange"
+
+
+def test_a_chain_into_arrange_is_live_without_an_output_cable():
+    doc = apply_all(
+        empty_doc(),
+        [
+            add(notes("n")),
+            add(instrument("i")),
+            add(arrange("a")),
+            connect("n", "i"),
+            connect("i", "a"),
+        ],
+    )
+    live = nodes_reaching_output(doc["nodes"].values(), doc["edges"].values())
+    assert {"n", "i", "a", OUTPUT_ID} <= live
+
+
+def test_arrange_is_not_live_when_the_room_has_no_output():
+    nodes = [arrange("a"), instrument("i")]
+    edges = [{"id": edge_id("i", "a"), "source": "i", "target": "a"}]
+    assert nodes_reaching_output(nodes, edges) == set()
+
+
+def test_update_node_data_sets_bars():
+    doc = must_apply(empty_doc(), add(arrange("a")))
+    doc = must_apply(doc, update("a", {"bars": {"i": 8, "f": 1}}))
+    assert doc["nodes"]["a"]["data"]["bars"] == {"i": 8, "f": 1}
+
+
+_BARS_MSG = "bars for i must be a whole number from 1 to 64"
+
+
+@pytest.mark.parametrize(
+    ("bars", "reason"),
+    [
+        pytest.param("4", "bars must be an object", id="not a dict"),
+        pytest.param([4], "bars must be an object", id="a list"),
+        pytest.param({"i": 0}, _BARS_MSG, id="zero"),
+        pytest.param({"i": 65}, _BARS_MSG, id="over the max"),
+        pytest.param({"i": 2.5}, _BARS_MSG, id="fraction"),
+        pytest.param({"i": "4"}, _BARS_MSG, id="string"),
+        pytest.param({"i": True}, _BARS_MSG, id="bool sneaking in as int"),
+        pytest.param({"i": math.inf}, _BARS_MSG, id="infinite"),
+    ],
+)
+def test_rejects_bad_bars(bars, reason: str):
+    doc = must_apply(empty_doc(), add(arrange("a")))
+    assert must_reject(doc, update("a", {"bars": bars})) == reason
+    assert must_reject(empty_doc(), add(arrange("b", bars))) == reason
+
+
+def test_arrange_needs_bars_when_added():
+    node = {**arrange("a"), "data": {}}
+    assert must_reject(empty_doc(), add(node)) == "bars must be an object"
+
+
+def test_arrange_only_takes_bars_and_other_nodes_dont_take_it():
+    doc = apply_all(empty_doc(), [add(arrange("a")), add(filt("f"))])
+    assert must_reject(doc, update("a", {"value": 5})) == "arrange has no field(s): value"
+    assert must_reject(doc, update("f", {"bars": {}})) == "filter has no field(s): bars"
+
+
+def test_arrange_ops_never_modify_the_input_doc():
+    doc = must_apply(empty_doc(), add(arrange("a")))
+    before = copy.deepcopy(doc)
+    apply_op(doc, update("a", {"bars": {"i": 8}}))
+    apply_op(doc, update("a", {"bars": {"i": 0}}))
+    assert doc == before

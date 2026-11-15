@@ -5,10 +5,11 @@ from collections.abc import Iterable
 # which node types may connect to which
 VALID_TARGETS: dict[str, set[str]] = {
     "notes": {"instrument"},
-    "instrument": {"filter", "fx", "output"},
-    "filter": {"filter", "fx", "output"},
-    "fx": {"filter", "fx", "output"},  # an FX rack can sit anywhere a Filter can
+    "instrument": {"filter", "fx", "output", "arrange"},
+    "filter": {"filter", "fx", "output", "arrange"},
+    "fx": {"filter", "fx", "output", "arrange"},  # an FX rack can sit anywhere a Filter can
     "output": set(),
+    "arrange": set(),
 }
 
 
@@ -40,20 +41,18 @@ def would_create_cycle(edges: Iterable[dict], source: str, target: str) -> bool:
 
 
 def nodes_reaching_output(nodes: Iterable[dict], edges: Iterable[dict]) -> set[str]:
-    """ids of every node with a path to the Output (Output included)"""
-    output = next((n for n in nodes if n["type"] == "output"), None)
-    if output is None:
-        return set()
+    """ids of every node with a path to the Output or to an Arrange (they join the Output wirelessly)"""
+    nodes = list(nodes)
+    if not any(n["type"] == "output" for n in nodes):
+        return set()  # no output node, nothing plays, arrange included
 
-    feeders: defaultdict[str, list[str]] = defaultdict(
-        list
-    )  # target -> [sources feeding it]
+    feeders: defaultdict[str, list[str]] = defaultdict(list)
     for e in edges:
         feeders[e["target"]].append(e["source"])
 
-    # BFS backwards from Output
-    reached = {output["id"]}
-    queue = deque([output["id"]])
+    # BFS backwards from every sink
+    reached = {n["id"] for n in nodes if n["type"] in ("output", "arrange")}
+    queue = deque(reached)
     while queue:
         current = queue.popleft()
         for src in feeders[current]:

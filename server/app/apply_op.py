@@ -67,6 +67,7 @@ EDITABLE_FIELDS: dict[str, set[str]] = {
     "filter": {"kind", "value", "q"},
     "fx": {"effects"},
     "output": set(),
+    "arrange": {"bars"},
 }
 
 
@@ -95,6 +96,19 @@ def bad_effects(effects: Any) -> str | None:
             return "effect q must be a finite number"
         if not isinstance(e.get("on"), bool):
             return "effect on must be true or false"
+    return None
+
+
+MAX_BARS = 64
+
+
+def bad_bars(bars: Any) -> str | None:
+    """an arrange node's {inputId: bar count} --> each count a whole number 1.. MAX_BARS (None = fine)"""
+    if not isinstance(bars, dict):
+        return "bars must be an object"
+    for k, v in bars.items():
+        if not isinstance(v, int) or isinstance(v, bool) or not 1 <= v <= MAX_BARS:
+            return f"bars for {k} must be a whole number from 1 to {MAX_BARS}"
     return None
 
 
@@ -146,6 +160,8 @@ def _apply(doc: dict, op: dict) -> ApplyResult:
             if node["type"] == "fx" and (
                 why := bad_effects(node["data"].get("effects"))
             ):
+                return Rejected(why)
+            if node["type"] == "arrange" and (why := bad_bars(node["data"].get("bars"))):
                 return Rejected(why)
             if bad := bad_number_field(node["data"]):
                 return Rejected(f"{bad} must be a finite number")
@@ -209,6 +225,8 @@ def _apply(doc: dict, op: dict) -> ApplyResult:
             if "sound" in patch and not is_sound_id(patch["sound"]):
                 return Rejected(f"unknown sound: {patch['sound']}")
             if "effects" in patch and (why := bad_effects(patch["effects"])):
+                return Rejected(why)
+            if "bars" in patch and (why := bad_bars(patch["bars"])):
                 return Rejected(why)
             if bad_field := bad_number_field(patch):
                 return Rejected(f"{bad_field} must be a finite number")
