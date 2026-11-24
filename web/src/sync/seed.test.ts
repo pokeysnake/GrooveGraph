@@ -94,18 +94,23 @@ describe("patch files", () => {
   });
 
   it("says what's wrong with a file that isn't ours", () => {
-    expect(readSaveFile("hello")).toEqual({ ok: false, reason: "not a Music Canvas file (not JSON)" });
-    expect(readSaveFile(text({ ops: [] }))).toEqual({ ok: false, reason: "not a Music Canvas file" });
-    expect(readSaveFile(text({ app: "music-canvas", format: SAVE_FORMAT }))).toEqual({ ok: false, reason: "not a Music Canvas file" });
-    expect(readSaveFile("null")).toEqual({ ok: false, reason: "not a Music Canvas file" });
+    expect(readSaveFile("hello")).toEqual({ ok: false, reason: "not a GrooveGraph file (not JSON)" });
+    expect(readSaveFile(text({ ops: [] }))).toEqual({ ok: false, reason: "not a GrooveGraph file" });
+    expect(readSaveFile(text({ app: "groovegraph", format: SAVE_FORMAT }))).toEqual({ ok: false, reason: "not a GrooveGraph file" });
+    expect(readSaveFile("null")).toEqual({ ok: false, reason: "not a GrooveGraph file" });
+  });
+
+  it("still loads files saved under the old music-canvas name", () => {
+    const old = { ...saveFile(starterDoc()), app: "music-canvas" };
+    expect(readSaveFile(text(old)).ok).toBe(true);
   });
 
   it("refuses a format it doesn't know", () => {
-    expect(readSaveFile(text({ app: "music-canvas", format: 99, ops: [] }))).toEqual({ ok: false, reason: "unsupported file format 99" });
+    expect(readSaveFile(text({ app: "groovegraph", format: 99, ops: [] }))).toEqual({ ok: false, reason: "unsupported file format 99" });
   });
 
   it("refuses a file whose ops don't apply (e.g. edited by hand)", () => {
-    const bad = { app: "music-canvas", format: SAVE_FORMAT, ops: [{ type: "setSetting", opId: "x", patch: { bpm: 999 } }] };
+    const bad = { app: "groovegraph", format: SAVE_FORMAT, ops: [{ type: "setSetting", opId: "x", patch: { bpm: 999 } }] };
     expect(readSaveFile(text(bad))).toEqual({ ok: false, reason: "file can't be loaded: op 1: bpm must be 40-240" });
   });
 });

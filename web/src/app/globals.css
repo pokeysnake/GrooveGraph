@@ -48,8 +48,8 @@
   --sheet: #1a222d;   /* a part's body (a node), a shade lighter than the paper */
   --ink: #d9e0ea;     /* chalk-white linework and text */
   --soft: #8b97a8;    /* secondary ink: labels, units, hints */
-  --faint: #263243;   /* major grid lines (every 40px) */
-  --fainter: #1b2430; /* minor grid lines (every 8px) */
+  --faint: #212b39;   /* major grid lines (every 40px), kept soft so they sit back */
+  --fainter: #171e28; /* minor grid lines (every 8px), barely there */
   --red: #ff6f4f;     /* the only colour: Output, selection, the play lamp */
 
   /* surfaces (the names the components use) */
@@ -476,3 +476,8 @@ button, input { font: inherit; } /* form controls don't inherit fonts by default
 .side .patch-actions .btn { flex: 1; justify-content: center; }
 .side .patch-note { margin: 6px 0 0; font-size: 11px; line-height: 1.4; color: var(--muted); }
 .side .examples-btn { width: 100%; justify-content: center; margin-top: 6px; }
+
+/* soften the graph paper: a slight blur takes the hard edge off the grid lines so they read as texture, not wires */
+.react-flow__background {
+  filter: blur(0.6px);
+}

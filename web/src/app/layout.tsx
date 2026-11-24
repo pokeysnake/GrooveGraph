@@ -4,7 +4,7 @@ import "@xyflow/react/dist/style.css";
 import "./globals.css";
 import "./theme.css";
 
-export const metadata = { title: "Music Canvas" };
+export const metadata = { title: "GrooveGraph" };
 
 /* Schematic fonts: Barlow is a DIN-style face (drafting labels), IBM Plex Mono for values and patterns.
    next/font self-hosts them at build time; the CSS variables feed --font-sans / --font-mono in globals.css. */

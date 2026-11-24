@@ -500,7 +500,7 @@ function Editor({ roomId }: { roomId: string | null }) {
                         </ReactFlow>
                         {/* drafting title block: which drawing this is and its revision (the op-log version) */}
                         <div className="titleblock" aria-hidden="true">
-                            <span>Title</span><span>music canvas / {roomId ? `room ${roomId.slice(0, 4)}` : "solo"}</span>
+                            <span>Title</span><span>groovegraph / {roomId ? `room ${roomId.slice(0, 4)}` : "solo"}</span>
                             <span>Rev</span><span>v{version} (ops)</span>
                             <span>Parts</span><span>{Object.keys(doc.nodes).length}</span>
                         </div>
@@ -509,7 +509,7 @@ function Editor({ roomId }: { roomId: string | null }) {
                 </section>
 
                 <aside className="side">
-                    <div className="brand">Music Canvas</div>
+                    <div className="brand">GrooveGraph</div>
                     <h4>Collaborators</h4>
                     <div className="who">you</div>
 

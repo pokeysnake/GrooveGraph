@@ -18,7 +18,7 @@ from app.protocol import (
 )
 from app.rooms import create_room, get_room
 
-app = FastAPI(title="Music Canvas Sync Server")
+app = FastAPI(title="GrooveGraph Sync Server")
 
 # Dev-only: the Next.js app runs on :3000. Tighten for deploy (Stage 10).
 ORIGINS = os.getenv("ALLOWED_ORIGINS", "http://localhost:3000").split(",")

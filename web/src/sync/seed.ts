@@ -50,9 +50,11 @@ export function foldOps(ops: Op[]): { ok: true; doc: Doc } | { ok: false; reason
 
 /** bump this if the file layout ever changes, so old files can be recognised and upgraded */
 export const SAVE_FORMAT = 1;
-export type SaveFile = { app: "music-canvas"; format: number; ops: Op[] };
+export type SaveFile = { app: "groovegraph"; format: number; ops: Op[] };
+/** files saved before the rename to GrooveGraph still say "music-canvas"; keep loading them */
+const SAVE_APP_IDS: readonly string[] = ["groovegraph", "music-canvas"];
 
-export const saveFile = (doc: Doc): SaveFile => ({ app: "music-canvas", format: SAVE_FORMAT, ops: docToOps(doc) });
+export const saveFile = (doc: Doc): SaveFile => ({ app: "groovegraph", format: SAVE_FORMAT, ops: docToOps(doc) });
 
 /** reads a save file's text: its ops if it's ours and the ops all apply, or why not (shown to the user) */
 export function readSaveFile(text: string): { ok: true; ops: Op[]; doc: Doc } | { ok: false; reason: string } {
@@ -60,11 +62,11 @@ export function readSaveFile(text: string): { ok: true; ops: Op[]; doc: Doc } | 
   try {
     data = JSON.parse(text);
   } catch {
-    return { ok: false, reason: "not a Music Canvas file (not JSON)" };
+    return { ok: false, reason: "not a GrooveGraph file (not JSON)" };
   }
   const f = data as Partial<SaveFile> | null;
-  if (typeof f !== "object" || f === null || f.app !== "music-canvas" || !Array.isArray(f.ops)) {
-    return { ok: false, reason: "not a Music Canvas file" };
+  if (typeof f !== "object" || f === null || !SAVE_APP_IDS.includes(f.app as string) || !Array.isArray(f.ops)) {
+    return { ok: false, reason: "not a GrooveGraph file" };
   }
   if (f.format !== SAVE_FORMAT) return { ok: false, reason: `unsupported file format ${String(f.format)}` };
   const r = foldOps(f.ops);
@@ -77,7 +79,7 @@ export function downloadSaveFile(doc: Doc) {
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
-  a.download = `music-canvas-${new Date().toISOString().slice(0, 16).replace(/[:T]/g, "-")}.json`;
+  a.download = `groovegraph-${new Date().toISOString().slice(0, 16).replace(/[:T]/g, "-")}.json`;
   a.click();
   URL.revokeObjectURL(url);
 }

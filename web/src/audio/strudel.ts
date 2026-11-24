@@ -4,7 +4,7 @@ import type { NotesSpan } from "@/model/compile";
 import { clearPlaying, onNoteTriggered, setNotesSpans } from "./playing";
 
 // the evaluated code calls this for every note (see play()); a global because Strudel runs the code as plain JS
-const HOOK = "__musicCanvasNote";
+const HOOK = "__grooveGraphNote";
 (globalThis as Record<string, unknown>)[HOOK] = onNoteTriggered;
 let ready: Promise<void> | null = null;
 

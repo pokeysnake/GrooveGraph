@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <!-- GrooveGraph: headphones whose band is a cable and whose ear cups are nodes -->
+  <rect width="32" height="32" rx="7" fill="#141a22"/>
+  <!-- the band: one cable arcing between the two nodes -->
+  <path d="M7 19V16A9 9 0 0 1 25 16V19" fill="none" stroke="#d9e0ea" stroke-width="2.4" stroke-linecap="round"/>
+  <!-- ear cups as nodes: one ink, one the red Output colour -->
+  <rect x="4.5" y="18" width="6" height="8.5" rx="2.5" fill="#1a222d" stroke="#d9e0ea" stroke-width="2"/>
+  <rect x="21.5" y="18" width="6" height="8.5" rx="2.5" fill="#ff6f4f"/>
+</svg>
